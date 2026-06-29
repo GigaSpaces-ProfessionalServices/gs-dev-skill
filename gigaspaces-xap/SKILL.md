@@ -1,7 +1,7 @@
 ---
 name: gigaspaces-xap
 description: >
-  Expert GigaSpaces XAP 17.2.1 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, and Maven project setup. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.2.1 unless the user specifies otherwise.
+  Expert GigaSpaces XAP 17.2.1 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, distributed tracing, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.2.1 unless the user specifies otherwise.
 ---
 
 # GigaSpaces XAP 17.2.1 – Java Code Generation Skill
@@ -14,20 +14,22 @@ GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) a
 
 ## Reference Files
 
-Load the relevant reference file(s) **before generating any code**. Each file covers a distinct capability area.
+**MANDATORY**: You MUST use the `Read` tool to read the relevant reference file(s) listed below **before generating any code or answering any question**. Do not skip this step. Select the file(s) based on the Quick Decision Guide below, then read them with absolute paths under `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/`.
 
-| File | Covers |
+| Absolute Path | Covers |
 |------|--------|
-| `references/maven-pom.md` | Maven pom.xml templates, repositories, Spring Boot, JDBC artifact, version strings |
-| `references/pojo-model.md` | @SpaceClass annotations, POJO design rules, SpaceDocument, @SupportCodeChange |
-| `references/space-operations.md` | GigaSpace API: write/read/take/change/count, SQLQuery, SpaceIterator, projections, transactions |
-| `references/event-containers.md` | Polling Container, Notify Container, FIFO, @TransactionalEvent |
-| `references/task-execution.md` | Task, DistributedTask, DurableTask, @TaskGigaSpace, AsyncFuture, routing vs broadcast |
-| `references/custom-aggregators.md` | AbstractPathAggregator, Externalizable, index optimization, skipFullScanSupported, @SupportCodeChange |
-| `references/remoting.md` | Executor-Based Remoting, @RemotingService, @ExecutorProxy, broadcast reducers |
-| `references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
-| `references/sql-jdbc.md` | JDBC driver, SQL syntax, DYNAMIC_FILTER hint, EXPLAIN ANALYZE, Spring JdbcTemplate |
-| `references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/maven-pom.md` | Maven pom.xml templates, repositories, Spring Boot, JDBC artifact, version strings |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/pojo-model.md` | @SpaceClass annotations, POJO design rules, SpaceDocument, @SupportCodeChange |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/space-operations.md` | GigaSpace API: write/read/take/change/count, SQLQuery, SpaceIterator, projections, transactions |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/event-containers.md` | Polling Container, Notify Container, FIFO, @TransactionalEvent |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/task-execution.md` | Task, DistributedTask, DurableTask, @TaskGigaSpace, AsyncFuture, routing vs broadcast |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/custom-aggregators.md` | AbstractPathAggregator, Externalizable, index optimization, skipFullScanSupported, @SupportCodeChange |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/remoting.md` | Executor-Based Remoting, @RemotingService, @ExecutorProxy, broadcast reducers |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/sql-jdbc.md` | JDBC driver, SQL syntax, DYNAMIC_FILTER hint, EXPLAIN ANALYZE, Spring JdbcTemplate |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/not-in-aggregator.md` | NOT IN custom aggregator: index-bucket skipping, Person domain example, when/when-not to use |
+| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
 
 ## Quick Decision Guide
 
@@ -42,7 +44,9 @@ User wants to...
   ├── Expose a service via the space     → remoting.md
   ├── Configure / deploy a PU            → processing-unit.md
   ├── Query via SQL / JDBC               → sql-jdbc.md
-  └── See a full working example         → billbuddy-domain.md
+  ├── See a full working example         → billbuddy-domain.md
+  ├── Query NOT IN on an indexed field   → not-in-aggregator.md
+  └── Add OpenTelemetry / tracing spans  → opentelemetry-tracing.md
 ```
 
 ---
