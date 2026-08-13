@@ -1,4 +1,4 @@
-# XAP POJO Model & Annotations (XAP 17.2.1)
+# XAP POJO Model & Annotations (XAP 17.3.0)
 
 ## Class-Level Annotations
 
@@ -56,6 +56,42 @@ public Integer getReceivingMerchantId() { return receivingMerchantId; }
 @SpaceIndex(type = SpaceIndexType.ORDERED)        // range queries (>, <, BETWEEN)
 @SpaceIndex(type = SpaceIndexType.EQUAL_AND_ORDERED) // both — highest index cost
 ```
+
+**Indexed embedded collections should be immutable.** When `@SpaceIndex` is applied to a
+collection-typed field (e.g. a `List<String>` of tags), an embedded/local space proxy can hand
+callers a live reference to that same collection (see `space-operations.md` § Connecting to the
+Space → Embedded Space). If a caller mutates the collection in place instead of replacing the whole
+field, the index can silently desync from the field's actual contents. Prefer an immutable
+collection type (or expose only a defensive copy) so the only way to change the field is to write a
+new value back to the space.
+
+### Primitive Fields & Template Matching
+
+In template matching, a field left `null` is treated as a wildcard — it matches any value, rather
+than constraining the query. That's the baseline behavior for reference-typed fields (`String`,
+`Integer`, enums, ...).
+
+Primitives are more storage-efficient than their wrapper types, so they're a reasonable default for
+space-stored fields. The tradeoff: a primitive can't be `null`, so an unset primitive field defaults
+to its zero value — and in template matching, the space engine matches on that literal value instead
+of treating the field as a wildcard, silently narrowing queries.
+
+If a field might be used in template matching, in order of preference:
+1. **Prefer `SQLQuery` over template matching in the first place** (see `space-operations.md` §
+   Read Operations) — no primitive/wildcard ambiguity at all.
+2. **If you must template-match on it, keep the primitive** and declare a sentinel null value so the
+   space engine knows what "unset" means, without giving up the smaller storage footprint:
+   ```java
+   private int age = -1;
+
+   @SpaceProperty(nullValue = "-1")
+   public int getAge() { return age; }
+   ```
+3. Only switch to a wrapper type (`Integer`, `Boolean`, ...) if you specifically want genuine `null`
+   semantics without a sentinel value — be aware this costs more storage/memory per field, so it's a
+   tradeoff, not a default choice.
+
+Reference: https://docs.gigaspaces.com/latest/dev-java/query-template-matching.html
 
 ### Storage & Exclusion
 

@@ -43,11 +43,11 @@ my-pu/
            http://www.springframework.org/schema/context
                http://www.springframework.org/schema/context/spring-context.xsd
            http://www.openspaces.org/schema/core
-               http://www.openspaces.org/schema/17.2/core/openspaces-core.xsd
+               http://www.openspaces.org/schema/core/openspaces-core.xsd
            http://www.openspaces.org/schema/events
-               http://www.openspaces.org/schema/17.2/events/openspaces-events.xsd
+               http://www.openspaces.org/schema/events/openspaces-events.xsd
            http://www.openspaces.org/schema/remoting
-               http://www.openspaces.org/schema/17.2/remoting/openspaces-remoting.xsd
+               http://www.openspaces.org/schema/remoting/openspaces-remoting.xsd
            http://www.springframework.org/schema/tx
                http://www.springframework.org/schema/tx/spring-tx.xsd">
 
@@ -88,7 +88,7 @@ my-pu/
            http://www.springframework.org/schema/beans
                http://www.springframework.org/schema/beans/spring-beans.xsd
            http://www.openspaces.org/schema/sla
-               http://www.openspaces.org/schema/17.2/sla/openspaces-sla.xsd">
+               http://www.openspaces.org/schema/sla/openspaces-sla.xsd">
 
     <!-- 2 partitions, 1 backup each = 4 GSC instances -->
     <os-sla:sla cluster-schema="partitioned"
@@ -230,7 +230,7 @@ import org.openspaces.core.space.cache.LocalViewSpaceConfigurer;
 import com.j_spaces.core.client.SQLQuery;
 
 LocalViewSpaceConfigurer localViewConfigurer = new LocalViewSpaceConfigurer(remoteSpaceProxy)
-        .addViewQuery(new SQLQuery<>(Trade.class, "status = 'OPEN'"))
+        .addViewQuery(new SQLQuery<>(Trade.class, "status = ?").setParameter(1, TradeStatus.OPEN))
         .addViewQuery(new SQLQuery<>(Account.class, ""));
 
 GigaSpace localView = new GigaSpaceConfigurer(localViewConfigurer).gigaSpace();

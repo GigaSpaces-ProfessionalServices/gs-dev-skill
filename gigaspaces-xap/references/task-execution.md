@@ -57,7 +57,7 @@ public class AccountSumTask implements Task<Double>, Serializable {
 ```java
 // Routes to the partition owning accountId "ACC-001"
 AsyncFuture<Double> future = gigaSpace.execute(new AccountSumTask("ACC-001"), "ACC-001");
-Double result = future.get();
+Double result = future.get(5, TimeUnit.SECONDS); // always bound the wait
 ```
 
 ---
@@ -74,7 +74,9 @@ import org.openspaces.core.executor.DistributedTask;
 import org.openspaces.core.executor.TaskGigaSpace;
 import org.openspaces.core.GigaSpace;
 import com.example.model.Payment;
+import com.example.model.Merchant;
 import com.example.model.CategoryType;
+import com.j_spaces.core.client.SQLQuery;
 import java.io.Serializable;
 import java.util.List;
 
@@ -92,11 +94,23 @@ public class CountPaymentsByCategoryTask
 
     @Override
     public Integer execute() throws Exception {
-        // Runs on ONE partition — query against local data only
-        Payment template = new Payment();
-        // If Payment is routed by merchantId, this counts payments for
-        // merchants in this category that happen to be on this partition
-        return gigaSpace.count(template); // scoped to this partition
+        // Runs on ONE partition — query against local data only.
+        // Payment is routed by merchantId, so first find merchants in this
+        // category, then count only their payments that live on this partition.
+        SQLQuery<Merchant> merchantQuery = new SQLQuery<>(Merchant.class, "category = ?");
+        merchantQuery.setParameter(1, category);
+        // Demonstration only — readMultiple doesn't scale to large result sets, and
+        // Integer.MAX_VALUE isn't a real bound. Prefer SpaceIterator (see space-operations.md
+        // § SpaceIterator) with a real batch size for anything beyond a handful of entries.
+        Merchant[] merchants = gigaSpace.readMultiple(merchantQuery, Integer.MAX_VALUE);
+
+        int count = 0;
+        for (Merchant m : merchants) {
+            SQLQuery<Payment> paymentQuery = new SQLQuery<>(Payment.class, "receivingMerchantId = ?");
+            paymentQuery.setParameter(1, m.getMerchantAccountId());
+            count += gigaSpace.count(paymentQuery);
+        }
+        return count; // scoped to this partition
     }
 
     @Override
@@ -115,7 +129,30 @@ public class CountPaymentsByCategoryTask
 ```java
 // Sent to ALL partitions; no routing key
 AsyncFuture<Long> future = gigaSpace.execute(new CountPaymentsByCategoryTask(CategoryType.FOOD));
-Long count = future.get();
+// Always bound the wait — an unbounded get() blocks forever if a partition is slow or unreachable.
+Long count = future.get(5, TimeUnit.SECONDS);
+```
+
+**Return meaningful data from `reduce()`, not just a bare count.** A `DistributedTask<Integer, Long>`
+that reduces to a single `Long` throws away exactly the information callers usually need next — e.g.
+which category or partition the changes came from. Prefer reducing into structured data, such as a
+map of count-by-category, so the caller doesn't need a follow-up query to answer the next question:
+
+```java
+public class CountPaymentsByCategoryTask
+        implements DistributedTask<Map<CategoryType, Long>, Map<CategoryType, Long>>, Serializable {
+    // execute() returns a Map<CategoryType, Long> of this partition's local counts
+
+    @Override
+    public Map<CategoryType, Long> reduce(List<AsyncResult<Map<CategoryType, Long>>> results) throws Exception {
+        Map<CategoryType, Long> total = new HashMap<>();
+        for (AsyncResult<Map<CategoryType, Long>> r : results) {
+            if (r.getException() != null) throw r.getException();
+            r.getResult().forEach((k, v) -> total.merge(k, v, Long::sum));
+        }
+        return total;
+    }
+}
 ```
 
 ---
@@ -199,7 +236,19 @@ public class ReconciliationTask implements DurableTask<Integer, Long>, Serializa
 **Invoking a DurableTask:**
 ```java
 AsyncFuture<Long> future = gigaSpace.execute(new ReconciliationTask());
-Long totalProcessed = future.get();
+// DurableTask is long-running by design — don't block on it with future.get(), even with a
+// timeout (a short one fires spuriously; a long one defeats the point of a "bound"). Use the
+// listener pattern instead (see AsyncFuture Patterns).
+future.setListener(new AsyncFutureListener<Long>() {
+    @Override
+    public void onResult(AsyncResult<Long> result) {
+        if (result.getException() != null) {
+            log.error("Reconciliation failed", result.getException());
+        } else {
+            log.info("Reconciliation processed {} entries", result.getResult());
+        }
+    }
+});
 
 // To cancel before completion:
 future.cancel(true);
@@ -219,9 +268,13 @@ future.cancel(true);
 
 ## AsyncFuture Patterns
 
+**Prefer the timeout variant by default.** A plain `future.get()` blocks the caller indefinitely if
+a partition is slow, hung, or unreachable — always bound it with `get(timeout, unit)` unless a
+listener-based callback (non-blocking) is a better fit.
+
 ```java
-// Blocking get
-Double result = future.get();
+// Timeout — preferred default
+Double result = future.get(5, TimeUnit.SECONDS);
 
 // Non-blocking with callback
 future.setListener(new AsyncFutureListener<Double>() {
@@ -235,8 +288,8 @@ future.setListener(new AsyncFutureListener<Double>() {
     }
 });
 
-// Timeout
-Double result = future.get(5, TimeUnit.SECONDS);
+// Blocking get — avoid; no bound on how long the caller can be stuck waiting
+Double result = future.get();
 ```
 
 ---
@@ -250,3 +303,5 @@ Double result = future.get(5, TimeUnit.SECONDS);
 | Use `readMultiple(..., Integer.MAX_VALUE)` inside task | Use `SpaceIterator` with bounded batch size |
 | Forget `@SupportCodeChange` on DurableTask | Required for hot code reload without GSC restart |
 | Block inside `execute()` with no cancel check | Check `cancelled` flag periodically in long loops |
+| `reduce()` returns a bare count (e.g. `Long`, `Integer`) | Reduce into structured data (e.g. `Map<Category, Long>`) so callers don't need a follow-up query |
+| Unbounded `future.get()` on a DistributedTask | Blocks the caller indefinitely if a partition is slow or unreachable — use `future.get(timeout, TimeUnit)` |

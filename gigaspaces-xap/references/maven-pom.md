@@ -1,9 +1,8 @@
-# XAP 17.2.1 Maven Setup
+# XAP 17.3.0 Maven Setup
 
 ## Version String
 
-Maven artifact version: **`17.2.1-ga`**
-Training labs used `17.1.0`; always substitute `17.2.1-ga` as the target.
+Maven artifact version: **`17.3.0`**
 
 ## Repository
 
@@ -41,7 +40,7 @@ GigaSpaces artifacts are NOT on Maven Central. Always add this repository:
     <packaging>pom</packaging>
 
     <properties>
-        <gigaspaces.version>17.2.1-ga</gigaspaces.version>
+        <gigaspaces.version>17.3.0</gigaspaces.version>
         <spring.version>6.2.1</spring.version>
         <slf4j.version>2.0.11</slf4j.version>
         <maven.compiler.source>17</maven.compiler.source>
@@ -135,7 +134,7 @@ Use this pattern for feeder clients, REST gateways, and standalone apps that con
     </parent>
 
     <properties>
-        <gigaspaces.version>17.2.1-ga</gigaspaces.version>
+        <gigaspaces.version>17.3.0</gigaspaces.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
@@ -275,7 +274,7 @@ mvn install:install-file \
   -Dfile=$GS_HOME/lib/required/xap-asm.jar \
   -DgroupId=org.gigaspaces \
   -DartifactId=xap-asm \
-  -Dversion=17.2.1 \
+  -Dversion=17.3.0 \
   -Dpackaging=jar
 ```
 

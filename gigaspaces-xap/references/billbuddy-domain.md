@@ -1,4 +1,4 @@
-# BillBuddy — Training Domain Model (XAP 17.2.1)
+# BillBuddy — Training Domain Model (XAP 17.3.0)
 
 This is the canonical domain used throughout GigaSpaces training labs. Use these classes as reference when explaining XAP patterns.
 
@@ -271,15 +271,18 @@ public class CountPaymentsByCategoryTask
     @Override
     public Integer execute() throws Exception {
         // Runs on ONE partition
-        Merchant merchantTemplate = new Merchant();
-        merchantTemplate.setCategory(categoryType);
-        Merchant[] merchants = gigaSpace.readMultiple(merchantTemplate, Integer.MAX_VALUE);
+        SQLQuery<Merchant> merchantQuery = new SQLQuery<>(Merchant.class, "category = ?");
+        merchantQuery.setParameter(1, categoryType);
+        // Demonstration only — readMultiple doesn't scale to large result sets, and
+        // Integer.MAX_VALUE isn't a real bound. Prefer SpaceIterator (see space-operations.md
+        // § SpaceIterator) with a real batch size for anything beyond a handful of entries.
+        Merchant[] merchants = gigaSpace.readMultiple(merchantQuery, Integer.MAX_VALUE);
 
         int count = 0;
         for (Merchant m : merchants) {
-            Payment paymentTemplate = new Payment();
-            paymentTemplate.setReceivingMerchantId(m.getMerchantAccountId());
-            count += gigaSpace.count(paymentTemplate);
+            SQLQuery<Payment> paymentQuery = new SQLQuery<>(Payment.class, "receivingMerchantId = ?");
+            paymentQuery.setParameter(1, m.getMerchantAccountId());
+            count += gigaSpace.count(paymentQuery);
         }
         return count;
     }
@@ -297,7 +300,7 @@ public class CountPaymentsByCategoryTask
 
 // Client usage:
 AsyncFuture<Long> future = gigaSpace.execute(new CountPaymentsByCategoryTask(CategoryType.FOOD));
-Long count = future.get();
+Long count = future.get(5, TimeUnit.SECONDS); // always bound the wait
 ```
 
 ---
@@ -306,7 +309,7 @@ Long count = future.get();
 
 ```xml
 <properties>
-    <gigaspaces.version>17.2.1-ga</gigaspaces.version>
+    <gigaspaces.version>17.3.0</gigaspaces.version>
     <spring.version>6.2.1</spring.version>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>

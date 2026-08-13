@@ -1,0 +1,14 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Archives — skill folders are distributed by zipping on demand, not by
+# checking in a zip (see the earlier stale gs-dev-skill-main.zip incident)
+*.zip

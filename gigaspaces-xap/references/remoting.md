@@ -1,4 +1,4 @@
-# XAP Space-Based Remoting (XAP 17.2.1)
+# XAP Space-Based Remoting (XAP 17.3.0)
 
 Space-Based Remoting exposes server-side services over the space transport layer, providing automatic load-balancing, high availability, and partition-aware routing.
 
@@ -157,7 +157,7 @@ public class CountByStatusReducer implements RemoteResultReducer<Map<String,Long
 ```java
 // Client: run a DistributedTask across all partitions
 AsyncFuture<Long> future = gigaSpace.execute(new CountPaymentsByCategoryTask(CategoryType.FOOD));
-Long total = future.get();
+Long total = future.get(5, TimeUnit.SECONDS); // always bound the wait
 ```
 
 ### Pattern 2: @RemotingService + @ExecutorProxy with Broadcast
@@ -177,15 +177,18 @@ public class CountPaymentByCategoryService implements ICountPaymentsByCategorySe
 
     @Override
     public int findPaymentCountByCategory(CategoryType categoryType) {
-        Merchant template = new Merchant();
-        template.setCategory(categoryType);
-        Merchant[] merchants = gigaSpace.readMultiple(template, Integer.MAX_VALUE);
+        SQLQuery<Merchant> merchantQuery = new SQLQuery<>(Merchant.class, "category = ?");
+        merchantQuery.setParameter(1, categoryType);
+        // Demonstration only — readMultiple doesn't scale to large result sets, and
+        // Integer.MAX_VALUE isn't a real bound. Prefer SpaceIterator (see space-operations.md
+        // § SpaceIterator) with a real batch size for anything beyond a handful of entries.
+        Merchant[] merchants = gigaSpace.readMultiple(merchantQuery, Integer.MAX_VALUE);
 
         int count = 0;
         for (Merchant m : merchants) {
-            Payment paymentTemplate = new Payment();
-            paymentTemplate.setReceivingMerchantId(m.getMerchantAccountId());
-            count += gigaSpace.count(paymentTemplate);
+            SQLQuery<Payment> paymentQuery = new SQLQuery<>(Payment.class, "receivingMerchantId = ?");
+            paymentQuery.setParameter(1, m.getMerchantAccountId());
+            count += gigaSpace.count(paymentQuery);
         }
         return count; // result from THIS partition only
     }
