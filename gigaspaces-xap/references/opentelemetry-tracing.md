@@ -1,8 +1,8 @@
 # OpenTelemetry Distributed Tracing in GigaSpaces XAP
 
-This reference covers how to instrument GigaSpaces Processing Units with OpenTelemetry spans, using Zipkin as the tracing backend. Based on the working demo at `~/Workspace/OpenTelemetryDemo`.
+This reference covers how to instrument GigaSpaces Processing Units with OpenTelemetry spans, using Zipkin as the tracing backend. Based on a validated working implementation.
 
-**XAP Version:** 17.2.2  
+**XAP Version:** 17.3.0  
 **OTel API Version:** `io.opentelemetry:opentelemetry-api:1.40.0`  
 **Zipkin:** v2 JSON API (`/api/v2/spans`)
 
@@ -33,7 +33,7 @@ The OTel **SDK** (`SdkTracerProvider`) cannot be bundled inside a GigaSpaces PU 
 <dependency>
     <groupId>org.gigaspaces</groupId>
     <artifactId>xap-reporter</artifactId>
-    <version>17.2.1-SNAPSHOT</version>
+    <version>17.3.0</version>
     <scope>compile</scope>
 </dependency>
 ```
@@ -253,7 +253,7 @@ If `ZipkinTracerBean` is not available (e.g. older XAP version), send spans dire
 //          "tags":{"key":"value"}}]
 ```
 
-See `ZipkinSender.java` in the demo for a self-contained implementation with no extra dependencies.
+Implement a minimal HTTP client that POSTs this payload — no extra dependencies needed.
 
 ---
 
@@ -268,13 +268,13 @@ See `ZipkinSender.java` in the demo for a self-contained implementation with no 
 
 ---
 
-## Running the Demo
+## Running a Demo Setup
 
-Full working demo at `~/Workspace/OpenTelemetryDemo`.
+Steps for a full working demo project (build, then deploy PUs in order):
 
 ```bash
 # 1. Build
-cd ~/Workspace/OpenTelemetryDemo && mvn clean package
+cd <your-demo-project> && mvn clean package
 
 # 2. Start Zipkin
 docker run -d -p 9411:9411 --name zipkin openzipkin/zipkin

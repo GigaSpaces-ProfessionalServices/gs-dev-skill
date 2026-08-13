@@ -1,4 +1,4 @@
-# XAP Event Containers (XAP 17.2.1)
+# XAP Event Containers (XAP 17.3.0)
 
 | Container | Semantics | Use when |
 |-----------|-----------|----------|
@@ -51,14 +51,14 @@ public class TradeProcessor {
 }
 ```
 
-### Polling Container: POJO Template (no SQLQuery needed for simple matches)
+### Polling Container: Single-Field Filter
 
 ```java
 @EventTemplate
-public Trade matchTemplate() {
-    Trade template = new Trade();
-    template.setStatus(TradeStatus.PENDING); // null fields = wildcard
-    return template;
+public SQLQuery<Trade> matchTemplate() {
+    SQLQuery<Trade> q = new SQLQuery<>(Trade.class, "status = ?");
+    q.setParameter(1, TradeStatus.PENDING);
+    return q;
 }
 ```
 
@@ -102,9 +102,10 @@ import org.openspaces.events.notify.*;
 import org.openspaces.events.adapter.SpaceDataEvent;
 import org.openspaces.core.GigaSpace;
 import com.example.model.Payment;
+import com.j_spaces.core.client.SQLQuery;
 import jakarta.annotation.Resource;
 
-// In XAP 17.2.1 notification types are controlled by a SEPARATE @NotifyType annotation.
+// Notification types are controlled by a SEPARATE @NotifyType annotation.
 // @Notify does NOT have notifyWrite/notifyUpdate/notifyTake attributes.
 @EventDriven
 @Notify(gigaSpace = "gigaSpace")
@@ -116,10 +117,10 @@ public class PaymentAuditListener {
     private GigaSpace gigaSpace;
 
     @EventTemplate
-    public Payment template() {
-        Payment p = new Payment();
-        p.setStatus(TransactionStatus.PROCESSED); // notify only for PROCESSED payments
-        return p;
+    public SQLQuery<Payment> template() {
+        SQLQuery<Payment> q = new SQLQuery<>(Payment.class, "status = ?");
+        q.setParameter(1, TransactionStatus.PROCESSED); // notify only for PROCESSED payments
+        return q;
     }
 
     @SpaceDataEvent

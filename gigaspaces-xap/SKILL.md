@@ -1,35 +1,39 @@
 ---
 name: gigaspaces-xap
 description: >
-  Expert GigaSpaces XAP 17.2.1 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, distributed tracing, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.2.1 unless the user specifies otherwise.
+  Expert GigaSpaces XAP 17.3.0 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, distributed tracing, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.3.0 unless the user specifies otherwise.
+license: MIT
+metadata:
+  author: GigaSpaces Technologies, Inc.
+  version: 1.0.0
 ---
 
-# GigaSpaces XAP 17.2.1 – Java Code Generation Skill
+# GigaSpaces XAP 17.3.0 – Java Code Generation Skill
 
 GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) and Space-Based Architecture (SBA) platform for building high-throughput, low-latency distributed applications.
 
-**Default target version: XAP 17.2.1** (Maven artifact version: `17.2.1`)
+**Default target version: XAP 17.3.0** (Maven artifact version: `17.3.0`)
 
 ---
 
 ## Reference Files
 
-**MANDATORY**: You MUST use the `Read` tool to read the relevant reference file(s) listed below **before generating any code or answering any question**. Do not skip this step. Select the file(s) based on the Quick Decision Guide below, then read them with absolute paths under `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/`.
+**MANDATORY**: You MUST use the `Read` tool to read the relevant reference file(s) listed below **before generating any code or answering any question**. Do not skip this step. Select the file(s) based on the Quick Decision Guide below, then read them using paths relative to this skill's own directory (i.e. `references/<file>.md`, resolved relative to the folder containing this `SKILL.md`).
 
-| Absolute Path | Covers |
+| Reference Path | Covers |
 |------|--------|
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/maven-pom.md` | Maven pom.xml templates, repositories, Spring Boot, JDBC artifact, version strings |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/pojo-model.md` | @SpaceClass annotations, POJO design rules, SpaceDocument, @SupportCodeChange |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/space-operations.md` | GigaSpace API: write/read/take/change/count, SQLQuery, SpaceIterator, projections, transactions |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/event-containers.md` | Polling Container, Notify Container, FIFO, @TransactionalEvent |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/task-execution.md` | Task, DistributedTask, DurableTask, @TaskGigaSpace, AsyncFuture, routing vs broadcast |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/custom-aggregators.md` | AbstractPathAggregator, Externalizable, index optimization, skipFullScanSupported, @SupportCodeChange |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/remoting.md` | Executor-Based Remoting, @RemotingService, @ExecutorProxy, broadcast reducers |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/sql-jdbc.md` | JDBC driver, SQL syntax, DYNAMIC_FILTER hint, EXPLAIN ANALYZE, Spring JdbcTemplate |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/not-in-aggregator.md` | NOT IN custom aggregator: index-bucket skipping, Person domain example, when/when-not to use |
-| `/Users/yuvaldori/Workspace/gs-dev-skill/gigaspaces-xap/references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
+| `references/maven-pom.md` | Maven pom.xml templates, repositories, Spring Boot, JDBC artifact, version strings |
+| `references/pojo-model.md` | @SpaceClass annotations, POJO design rules, SpaceDocument, @SupportCodeChange |
+| `references/space-operations.md` | GigaSpace API: write/read/take/change/count, SQLQuery, SpaceIterator, projections, transactions |
+| `references/event-containers.md` | Polling Container, Notify Container, FIFO, @TransactionalEvent |
+| `references/task-execution.md` | Task, DistributedTask, DurableTask, @TaskGigaSpace, AsyncFuture, routing vs broadcast |
+| `references/custom-aggregators.md` | AbstractPathAggregator, Externalizable, index optimization, skipFullScanSupported, @SupportCodeChange |
+| `references/remoting.md` | Executor-Based Remoting, @RemotingService, @ExecutorProxy, broadcast reducers |
+| `references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
+| `references/sql-jdbc.md` | JDBC driver, SQL syntax, DYNAMIC_FILTER hint, EXPLAIN ANALYZE, Spring JdbcTemplate |
+| `references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
+| `references/not-in-aggregator.md` | NOT IN custom aggregator: index-bucket skipping, Person domain example, when/when-not to use |
+| `references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
 
 ## Quick Decision Guide
 
@@ -58,7 +62,7 @@ User wants to...
 - Include only the relevant import block
 
 **Complete project** (user asks for "working example", "runnable project", "full implementation"):
-1. `pom.xml` — with XAP 17.2.1 Maven deps (read `maven-pom.md` first)
+1. `pom.xml` — with XAP 17.3.0 Maven deps (read `maven-pom.md` first)
 2. Model module: `@SpaceClass` POJOs with `@SpaceId`, `@SpaceRouting`, `@SpaceIndex`
 3. `pu.xml` or Spring Boot `@Configuration` class — prefer annotations; use `pu.xml` only where annotations are insufficient
 4. `application.yml` or `application.properties` for Spring Boot connection settings
@@ -93,6 +97,8 @@ Always flag these when you see them in user code or questions:
 | Template query with all nulls | Matches everything — scatter-gather across all partitions | Use SQLQuery with at least a routing condition |
 | Writing all entries via embedded (local) proxy in partitioned PU | Entries whose routing key belongs to another partition throw a routing exception | Implement `ClusterInfoAware`, filter by `Math.abs(key.hashCode()) % numPartitions == partitionIndex`; see `processing-unit.md` |
 | Using `clustered=true` GigaSpace bean inside a PU to seed data | Semantically wrong — the embedded space IS the local partition, not a cluster gateway | Use `ClusterInfoAware` to write only the partition-local subset |
+| Mutating an entry read via an embedded/local proxy in place | Embedded proxy returns a live reference, not a copy — can throw `ConcurrentModificationException` or desync an indexed collection field | Deep-copy before mutating; make indexed embedded-collection fields immutable; see `space-operations.md` and `pojo-model.md` |
+| `DistributedTask.reduce()` returns a bare count (e.g. `Long`) | Discards per-category/per-entry detail callers usually need next | Reduce into structured data, e.g. `Map<Category, Long>`; see `task-execution.md` |
 
 ---
 
@@ -101,7 +107,7 @@ Always flag these when you see them in user code or questions:
 1. **Default constructor required** — Every space class must have a no-arg constructor.
 2. **`@SpaceId` is mandatory** — Exactly one getter per class.
 3. **`@SpaceRouting` controls partitioning** — Defaults to the SpaceId field; always be explicit.
-4. **Null = wildcard in templates** — Use `SQLQuery` for range/complex queries.
+4. **Null = wildcard in templates, but primitives can't be null** — prefer `SQLQuery` over template matching by default; if you must template-match a primitive field, add `@SpaceProperty(nullValue = "...")`.
 5. **Prefer batch operations** — `writeMultiple`, `readMultiple`, `takeMultiple` are 10–50× faster.
 6. **Indexes are write-overhead tradeoffs** — Add `@SpaceIndex` only on fields used in filters.
 7. **Tasks must be serializable** — Task class + all non-transient fields must implement `Serializable`.

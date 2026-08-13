@@ -21,6 +21,11 @@ query.setParameter(2, 100.0);
 Payment[] results = gigaSpace.readMultiple(query, 500); // always set a limit
 ```
 
+Always use `?` placeholders, never inline a value into the query string. A parameterized query's
+text is identical across calls, so the engine can cache the parsed/analyzed query plan and reuse
+it — inlining values makes each call a distinct query string, forcing re-parsing and re-analysis
+every time. See `space-operations.md` § SQLQuery.
+
 ### Projections (return only needed fields)
 
 ```java
@@ -96,7 +101,7 @@ iterator.close(); // always close to release server-side resources
 <dependency>
     <groupId>com.gigaspaces</groupId>
     <artifactId>xap-jdbc</artifactId>
-    <version>17.2.1-ga</version>
+    <version>17.3.0</version>
 </dependency>
 ```
 

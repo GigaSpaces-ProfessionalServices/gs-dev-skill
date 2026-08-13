@@ -1,4 +1,4 @@
-# XAP Space Operations (XAP 17.2.1)
+# XAP Space Operations (XAP 17.3.0)
 
 ## Connecting to the Space
 
@@ -7,6 +7,17 @@
 GigaSpace gigaSpace = new GigaSpaceConfigurer(
         new EmbeddedSpaceConfigurer("mySpace")).gigaSpace();
 ```
+
+**Embedded proxy returns live references, not copies.** Reading an entry through an embedded/local
+proxy hands back the actual object stored in the space, not a serialized clone (a remote proxy always
+deserializes a fresh copy on read). Two consequences:
+- Mutating a read entry in place — or letting another thread touch it — before writing it back can
+  throw `ConcurrentModificationException` or corrupt space state. Take a **deep copy** before
+  mutating, or write back a genuinely new instance.
+- If an indexed field is a collection (e.g. `@SpaceIndex` on a `List`/`Set`), mutating that
+  collection in place after the read can desync the index from the field's actual contents. Prefer
+  making indexed embedded-collection fields **immutable** so the only way to change the field is to
+  write a new value back to the space. See `pojo-model.md` § Indexing.
 
 ### Remote Proxy (client apps, feeders, REST services)
 ```java
@@ -62,16 +73,7 @@ gigaSpace.writeMultiple(batch);
 
 ## Read Operations
 
-### Template-Based (null = wildcard)
-```java
-Trade template = new Trade();
-template.setStatus(TradeStatus.OPEN); // only non-null fields are matched
-
-Trade result = gigaSpace.read(template);                   // first match
-Trade[] results = gigaSpace.readMultiple(template, 1000);  // up to 1000 matches
-```
-
-### SQLQuery (prefer for complex predicates)
+### SQLQuery (preferred)
 ```java
 SQLQuery<Trade> query = new SQLQuery<>(Trade.class, "symbol = ? AND price > ?");
 query.setParameter(1, "AAPL");
@@ -80,6 +82,47 @@ query.setParameter(2, 150.0);
 Trade  single = gigaSpace.read(query);
 Trade[] batch  = gigaSpace.readMultiple(query, 500);
 ```
+Prefer `SQLQuery` over template matching by default — not just for range/complex predicates, but
+because it has no ambiguity around primitive fields (see the caveat below). Reach for template
+matching only for the simplest single-field exact-match case, and even then, be aware of its
+primitive-field limitation.
+
+**Always parameterize with `?` and `.setParameter(...)` — never inline a value into the query
+string** (e.g. `"status = 'OPEN'"` or `"amount > " + minAmount`), even for constants that don't
+come from user input. A parameterized query's text is identical across calls, so the engine can
+cache the parsed/analyzed query plan and reuse it; inlining values makes each call a distinct query
+string, forcing re-parsing and re-analysis every time.
+
+### Template-Based (null = wildcard — reference types only; see caveat)
+```java
+Trade template = new Trade();
+template.setStatus(TradeStatus.OPEN); // only non-null fields are matched
+
+Trade result = gigaSpace.read(template);                   // first match
+Trade[] results = gigaSpace.readMultiple(template, 1000);  // up to 1000 matches
+```
+
+**Primitive-typed fields can never act as a wildcard in a template.** A Java primitive (`int`,
+`boolean`, `long`, etc.) can't be `null`, so an unset primitive field defaults to its zero value
+(`0`, `false`, ...) — and the space engine matches on that literal value instead of treating the
+field as "don't care." This silently narrows a template query to only entries where that field
+happens to equal zero, with no error to warn you.
+
+In order of preference:
+1. **Use `SQLQuery` instead** (see above) — no primitive/wildcard ambiguity at all, since the
+   predicate is explicit.
+2. **If you must template-match on a primitive field, keep the primitive and declare a sentinel null
+   value** with `@SpaceProperty(nullValue = "...")` on the getter, initializing the field to that same
+   sentinel so callers don't need to set it explicitly:
+   ```java
+   private int age = -1;
+
+   @SpaceProperty(nullValue = "-1")
+   public int getAge() { return age; }
+   ```
+   This keeps the primitive's smaller storage footprint. See `pojo-model.md` § Primitive Fields &
+   Template Matching for the wrapper-type tradeoff, if you'd rather avoid `nullValue` entirely.
+   Reference: https://docs.gigaspaces.com/latest/dev-java/query-template-matching.html
 
 ### Read by ID (fastest — direct lookup)
 ```java
@@ -177,7 +220,7 @@ int count = gigaSpace.count(new SQLQuery<>(Payment.class, "status = ?").setParam
 
 // Clear all matching entries
 gigaSpace.clear(template);
-gigaSpace.clear(new SQLQuery<>(Payment.class, "status = 'EXPIRED'"));
+gigaSpace.clear(new SQLQuery<>(Payment.class, "status = ?").setParameter(1, TransactionStatus.EXPIRED));
 ```
 
 ---
@@ -214,6 +257,45 @@ public PlatformTransactionManager transactionManager() throws Exception {
     return new DistributedJiniTxManagerConfigurer().transactionManager();
 }
 ```
+
+**Create the transaction manager once and reuse it.** `DistributedJiniTxManagerConfigurer` registers
+distributed-transaction infrastructure on construction. As a `@Bean` it's a Spring singleton by
+default, so this is easy to get right without thinking about it.
+
+### Setup (Programmatic — no Spring container)
+
+Without a container enforcing singleton scope, it's easy to accidentally construct a new manager per
+call. Build it once — at startup, held as a field or static singleton — and reuse that instance
+everywhere:
+
+```java
+public final class TxManagers {
+    // Built once; every caller reuses this instance.
+    public static final PlatformTransactionManager PAYMENTS_TX_MANAGER = buildTxManager();
+
+    private static PlatformTransactionManager buildTxManager() {
+        try {
+            return new DistributedJiniTxManagerConfigurer().transactionManager();
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize transaction manager", e);
+        }
+    }
+}
+
+// Anywhere transactional work is needed — reuse the singleton, don't re-construct:
+TransactionTemplate txTemplate = new TransactionTemplate(TxManagers.PAYMENTS_TX_MANAGER);
+txTemplate.execute(status -> {
+    Payment payment = gigaSpace.take(query);
+    payment.setStatus(TransactionStatus.PROCESSED);
+    gigaSpace.write(payment);
+    return null;
+});
+```
+
+**Anti-pattern:** calling `new DistributedJiniTxManagerConfigurer().transactionManager()` inside a
+method that runs per-request or per-loop-iteration. Each call re-registers distributed-transaction
+infrastructure — construct once, reuse everywhere, whether via a Spring bean or a manually-held
+singleton.
 
 ### Usage
 ```java
@@ -290,3 +372,5 @@ gigaSpace.addListener(template, (source, remoteEvent) -> {
 | Template with all null fields | Use `SQLQuery` or set at least the routing field |
 | `gigaSpace.write(obj)` in a tight loop | Use `gigaSpace.writeMultiple(batch)` |
 | `readById(Class, id)` without routing value for non-ID routing | Pass routing value as 3rd arg to avoid broadcast |
+| Mutating an entry read via an embedded/local proxy in place | Deep-copy before mutating — embedded proxy returns a live reference, not a clone |
+| Template-matching a primitive field left at its zero value, expecting a wildcard | Primitives can't be `null`; use `SQLQuery`, or add `@SpaceProperty(nullValue="...")` if you must template-match it |
