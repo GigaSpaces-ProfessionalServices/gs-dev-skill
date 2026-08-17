@@ -158,14 +158,17 @@ public class FifoProcessor {
 
 ## pu.xml — Polling Container (use when annotation style is insufficient)
 
+Prefer `<os-core:sql-query>` over a POJO-bean `<os-core:template>` — same reasoning as
+`space-operations.md`'s SQLQuery-over-template guidance: a bean template can only express
+equality-per-property and can't be null-safe on primitives, while `sql-query` supports the full
+WHERE-clause grammar (ranges, `IN`, `IS NULL`, etc.) and takes an explicit projections attribute.
+Namespace declarations (`xmlns:os-events`, `xmlns:os-core`) go on the root `<beans>` element — see
+`processing-unit.md` for a full pu.xml header.
+
 ```xml
 <os-events:polling-container id="tradeProcessor" giga-space="gigaSpace">
     <os-events:tx-support tx-manager="transactionManager"/>
-    <os-events:template>
-        <bean class="com.example.model.Trade">
-            <property name="status" value="PENDING"/>
-        </bean>
-    </os-events:template>
+    <os-core:sql-query class="com.example.model.Trade" where="status = 'PENDING'"/>
     <os-events:listener>
         <os-events:annotation-adapter>
             <os-events:delegate>
@@ -175,6 +178,12 @@ public class FifoProcessor {
     </os-events:listener>
 </os-events:polling-container>
 ```
+
+`<os-core:sql-query>` is a direct child of `<os-events:polling-container>` (and
+`<os-events:notify-container>`) as an alternative to `<os-core:template>` — attributes are `where`
+(required), `class` or `class-name`, and optional `projections` (comma-separated property names).
+There's no `?` parameter binding in static XML config — embed the literal value directly in `where`,
+as shown above.
 
 ---
 
