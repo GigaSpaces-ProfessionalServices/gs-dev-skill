@@ -32,7 +32,7 @@ GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) a
 | `references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
 | `references/sql-jdbc.md` | JDBC driver, SQL syntax, DYNAMIC_FILTER hint, EXPLAIN ANALYZE, Spring JdbcTemplate |
 | `references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
-| `references/not-in-aggregator.md` | NOT IN custom aggregator: index-bucket skipping, Person domain example, when/when-not to use |
+| `references/not-in-aggregator.md` | NOT IN custom aggregator: why indexes can't serve NOT IN, required @SpaceIndex, Payment/status example, when/when-not to use |
 | `references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
 
 ## Quick Decision Guide
@@ -89,6 +89,7 @@ Always flag these when you see them in user code or questions:
 | `readMultiple(template, Integer.MAX_VALUE)` unbounded | OOM; scans all partitions | Add limit or use `SpaceIterator` with batch size |
 | Non-`Serializable` space entry | Task serialization fails at send | Implement `Serializable` (or `Externalizable` for performance) |
 | Non-`Externalizable` custom aggregator | Slow serialization across partitions | Implement `Externalizable` in every aggregator |
+| SQL/JDBC `field NOT IN (...)` on an indexed field | Indexes can't serve negation — forces a full scatter-gather scan of every partition regardless of the index | Use a custom NOT IN aggregator with `@SpaceIndex(EQUAL)` on the field; see `not-in-aggregator.md` |
 | Client-side aggregation via `readMultiple` | Transfers all data over network | Use `DistributedTask` or built-in aggregators |
 | `GigaSpace` held as non-transient task field | Serialization error | Always mark `@TaskGigaSpace private transient GigaSpace gigaSpace` |
 | `GigaSpace` bean missing `tx-manager` when using `@TransactionalEvent` | Startup fails: "GigaSpace is not transactional" | `<os-core:giga-space id="gigaSpace" space="space" tx-manager="transactionManager"/>` — the transaction manager must be set on the bean itself, not just declared |
