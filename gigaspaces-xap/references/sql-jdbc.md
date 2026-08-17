@@ -65,6 +65,10 @@ name LIKE 'John%'   name RLIKE '(?i)john.*'   -- RLIKE = Java regex
 -- IN list
 status IN ('PENDING', 'ACTIVE')
 
+-- NOT IN — even on an indexed field this forces a full scatter-gather scan;
+-- use a custom aggregator instead, see `not-in-aggregator.md`
+-- status NOT IN ('CANCELLED', 'FAILED')
+
 -- Logical
 field1 = ? AND field2 > ?
 field1 = ? OR  field2 = ?
