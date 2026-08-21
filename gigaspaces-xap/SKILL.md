@@ -34,6 +34,7 @@ GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) a
 | `references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
 | `references/not-in-aggregator.md` | NOT IN custom aggregator: why indexes can't serve NOT IN, required @SpaceIndex, Payment/status example, when/when-not to use |
 | `references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
+| `references/mirror-persistence.md` | Mirror service (async write-behind persistence): pu.xml wiring, `PersistencyExceptionHandler`, default retry-forever-and-block behavior with no handler, bounded-retry/dead-letter boilerplate and its limitations, alternative exception-handling policies |
 
 ## Quick Decision Guide
 
@@ -50,8 +51,18 @@ User wants to...
   ├── Query via SQL / JDBC               → sql-jdbc.md
   ├── See a full working example         → billbuddy-domain.md
   ├── Query NOT IN on an indexed field   → not-in-aggregator.md
-  └── Add OpenTelemetry / tracing spans  → opentelemetry-tracing.md
+  ├── Add OpenTelemetry / tracing spans  → opentelemetry-tracing.md
+  └── Set up / review a Mirror (async persistence) → mirror-persistence.md
 ```
+
+**Whenever a project includes a Mirror PU** (`<os-core:mirror>`, `mirrored="true"` on a source space,
+or `@SpaceClass(persist = true)` types) — read `mirror-persistence.md` and check whether a
+`PersistencyExceptionHandler` is wired in before treating the persistence setup as complete. A mirror
+with no exception handler still deploys and runs; it fails silently (retries forever, blocks that
+replication channel, grows the redo log) the first time a write is rejected. Flag this even if the
+user didn't ask about exception handling specifically — surface it, explain the default behavior, and
+offer the boilerplate from that reference file, since this is exactly the kind of thing that's easy to
+skip without knowing it's missing.
 
 ---
 
@@ -100,6 +111,7 @@ Always flag these when you see them in user code or questions:
 | Using `clustered=true` GigaSpace bean inside a PU to seed data | Semantically wrong — the embedded space IS the local partition, not a cluster gateway | Use `ClusterInfoAware` to write only the partition-local subset |
 | Mutating an entry read via an embedded/local proxy in place | Embedded proxy returns a live reference, not a copy — can throw `ConcurrentModificationException` or desync an indexed collection field | Deep-copy before mutating; make indexed embedded-collection fields immutable; see `space-operations.md` and `pojo-model.md` |
 | `DistributedTask.reduce()` returns a bare count (e.g. `Long`) | Discards per-category/per-entry detail callers usually need next | Reduce into structured data, e.g. `Map<Category, Long>`; see `task-execution.md` |
+| `<os-core:mirror>` / `space-sync-endpoint` with no `PersistencyExceptionHandler` wired in | Persistence failures propagate to the primary's logs and the primary retries the batch forever — the replication channel blocks and the redo log grows unbounded | Wrap the sync endpoint with `SpaceSynchronizationEndpointExceptionHandler` + a `PersistencyExceptionHandler`; see `mirror-persistence.md` for the default behavior, boilerplate, and its own caveats |
 
 ---
 
@@ -179,4 +191,10 @@ import org.openspaces.events.notify.NotifyType;
 
 // IdQuery — lookup by @SpaceId; in com.gigaspaces.QUERY (not com.gigaspaces.client)
 import com.gigaspaces.query.IdQuery;
+
+// Mirror / async persistence exception handling (see mirror-persistence.md)
+import org.openspaces.persistency.patterns.PersistencyExceptionHandler;
+import org.openspaces.persistency.patterns.SpaceSynchronizationEndpointExceptionHandler;
+import com.gigaspaces.sync.DataSyncOperation;
+import com.gigaspaces.sync.OperationsBatchData;
 ```
