@@ -69,6 +69,11 @@ my-pu/
     <!-- Scan for @EventDriven, @RemotingService, @Component beans -->
     <context:component-scan base-package="com.example"/>
 
+    <!-- Required to turn @EventDriven/@Polling/@Notify annotated beans into real event
+         containers — component-scan alone finds the classes but leaves them as inert POJO
+         beans; without this element the container is never created and no events fire. -->
+    <os-events:annotation-support/>
+
     <!-- Enable @ExecutorProxy injection in annotated beans -->
     <os-remoting:annotation-support/>
 
@@ -178,11 +183,21 @@ When existing `pu.xml` configuration is needed alongside Spring Boot:
 @EnableTransactionManagement
 public class Main {
     // GigaSpace bean comes from pu.xml
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         SpringApplication.run(Main.class, args);
+        // A standalone Notify/Polling listener has no web server, so once main()
+        // returns the JVM has no non-daemon thread left and exits immediately —
+        // block the main thread to keep the process (and its event containers) alive.
+        Thread.currentThread().join();
     }
 }
 ```
+
+If this app also pulls in `xap-openspaces`'s transitive dependencies, Spring Boot can
+mis-detect a servlet web app from the classpath and fail to start with "no
+ServletWebServerFactory bean defined". Set `spring.main.web-application-type=none` in
+`application.yml`/`application.properties` for any Notify/Polling listener or feeder that
+isn't actually serving HTTP.
 
 ---
 
