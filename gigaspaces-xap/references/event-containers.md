@@ -243,3 +243,5 @@ public Payment processAndChargeFee(Payment payment) {
 | Both polling + notify containers competing for same entries | Polling takes entries (destructive); notify observes (non-destructive) — they serve different purposes |
 | Throwing unchecked exception without `@TransactionalEvent` | Entry is consumed but not processed; add `@TransactionalEvent` for auto-rollback |
 | `concurrentConsumers > numberOfPartitions` | Excess threads sit idle waiting; size to partition count |
+| `@EventDriven`/`@Polling`/`@Notify` bean never fires, no error at all | `pu.xml` is missing `<os-events:annotation-support/>` — `<context:component-scan>` alone discovers the class but doesn't turn it into a real event container; see `processing-unit.md`'s pu.xml skeleton |
+| Standalone Notify/Polling Spring Boot app (no web server) exits right after "Started..." log line, container never processes anything | Nothing keeps the JVM alive once `main()` returns — block it, e.g. `Thread.currentThread().join()` after `SpringApplication.run(...)` |
