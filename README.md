@@ -10,6 +10,8 @@ folder is independent: install only the ones you need.
 |---|---|
 | [`gigaspaces-xap`](gigaspaces-xap/) | Java code generation and guidance for GigaSpaces XAP 17.3.0 |
 | [`iidr-cdc-operations`](iidr-cdc-operations/) | Operational runbooks for IBM InfoSphere Data Replication (IIDR) CDC engines |
+| [`xap-wan`](xap-wan/) | GigaSpaces XAP WAN Gateway: multi-site replication, bootstrapping, replication filters, conflict resolution |
+| [`xap-persist`](xap-persist/) | GigaSpaces XAP external-database persistence: full Mirror service setup, initial load, custom hand-written-JDBC persistence, redolog internals |
 
 ### gigaspaces-xap
 
@@ -25,6 +27,34 @@ Field-validated operational guidance for IIDR CDC engines replicating from Oracl
 encrypting IIDR component-to-component traffic with TLS, configuring an IIDR Oracle CDC agent to
 decrypt TDE-encrypted redo, and handling source DDL/schema changes safely. See
 [`iidr-cdc-operations/SKILL.md`](iidr-cdc-operations/SKILL.md) for full details.
+
+### xap-wan
+
+Expert guidance for GigaSpaces XAP WAN Gateway: active-passive/active-active multi-site
+replication, bootstrapping a new site from an existing one's data, selective replication filters,
+and cross-site conflict resolution. See [`xap-wan/SKILL.md`](xap-wan/SKILL.md) for full details.
+
+Distilled from [`xap-wan-training`](https://github.com/GigaSpaces-ProfessionalServices/xap-wan-training)
+(branch `17.3.0`, commit `8f18a91`, 2026-08-24) — a Docker Compose reactor per scenario. `active-passive.md`
+and `conflict-resolution.md` were verified by actually building and deploying those labs, not just
+reading them. **To re-verify this skill after a XAP upgrade**, rebuild and redeploy the relevant
+lab(s) against the new release the same way and check for drift, rather than re-reading the source.
+
+### xap-persist
+
+Expert guidance for GigaSpaces XAP external-database persistence beyond the Mirror service's
+exception-handling policy (owned by `gigaspaces-xap`'s `mirror-persistence.md`): full Hibernate-backed
+mirror setup, initial load (including custom initial-load queries), and fully custom
+hand-written-JDBC persistence. See [`xap-persist/SKILL.md`](xap-persist/SKILL.md) for full details.
+
+Distilled from [`xap-persist-training`](https://github.com/GigaSpaces-ProfessionalServices/xap-persist-training)
+(`main`, commit `570cb23`, 2026-08-20). `mirror-service.md` and `redolog.md` were verified by actually
+building and deploying those labs against a real local 17.3.0 install, not just reading them —
+verification also disproved one of the labs' own claims (`schema="persistent"` is not required for
+`space-data-source`) and surfaced a real PU-app-name-vs-space-name bug. **To re-verify this skill
+after a XAP upgrade**, rebuild and redeploy the relevant lab(s) against the new release the same way
+and check for drift, rather than re-reading the source. Two labs from the same source repo were
+deliberately left out — see `SKILL.md`'s intro and the commit history for why.
 
 ## Installation
 
