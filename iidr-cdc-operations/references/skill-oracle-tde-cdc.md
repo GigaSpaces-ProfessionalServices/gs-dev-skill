@@ -3,8 +3,8 @@
 ## When to use this
 
 Someone needs to (a) put an Oracle table on an encrypted (TDE) tablespace, and/or (b) get an IIDR Oracle
-CDC agent to correctly capture changes on tables that are already TDE-encrypted. Validated on IIDR
-11.4.0.4-5672 against Oracle 19c (non-CDB); should generalize to similar versions.
+CDC agent to correctly capture changes on tables that are already TDE-encrypted. Validated on
+IIDR 11.4.0.5 (build master_5726) against Oracle 19c (non-CDB); should generalize to similar versions.
 
 **Core fact to internalize:** IIDR reads Oracle's redo logs directly from disk, not through SQL. For TDE
 tablespaces those redo records are encrypted, so the agent must be given the Oracle master key value(s) to
@@ -81,7 +81,7 @@ while editing.
    ```
 2. Back up the instance config (cheap insurance):
    ```bash
-   cd /giga/iidr/oracle/instance/ORACLE
+   cd <engine-install>/instance/<INST>
    cp -a conf conf.bak-$(date +%Y%m%d)
    ```
 3. Run `bin/dmconfigurets` (interactive TTY tool — script it with `expect` if automating):
