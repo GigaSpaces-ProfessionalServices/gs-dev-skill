@@ -32,13 +32,16 @@ decrypt TDE-encrypted redo, and handling source DDL/schema changes safely. See
 
 Expert guidance for GigaSpaces XAP WAN Gateway: active-passive/active-active multi-site
 replication, bootstrapping a new site from an existing one's data, selective replication filters,
-and cross-site conflict resolution. See [`xap-wan/SKILL.md`](xap-wan/SKILL.md) for full details.
+cross-site conflict resolution, and adding/removing gateway targets on a live space at runtime. See
+[`xap-wan/SKILL.md`](xap-wan/SKILL.md) for full details.
 
 Distilled from [`xap-wan-training`](https://github.com/GigaSpaces-ProfessionalServices/xap-wan-training)
-(branch `17.3.0`, commit `8f18a91`, 2026-08-24) — a Docker Compose reactor per scenario. `active-passive.md`
+(branch `main`, commit `fd2bd7e`, 2026-09-01) — a Docker Compose reactor per scenario. `active-passive.md`
 and `conflict-resolution.md` were verified by actually building and deploying those labs, not just
-reading them. **To re-verify this skill after a XAP upgrade**, rebuild and redeploy the relevant
-lab(s) against the new release the same way and check for drift, rather than re-reading the source.
+reading them; `runtime-targets.md` was distilled from `lab06-wan_gateway_modify_target` by reading
+the lab's source and its own documented verification, not independently rebuilt. **To re-verify this
+skill after a XAP upgrade**, rebuild and redeploy the relevant lab(s) against the new release the
+same way and check for drift, rather than re-reading the source.
 
 ### xap-persist
 

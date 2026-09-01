@@ -3,12 +3,13 @@ name: xap-wan
 description: >
   Expert guidance for GigaSpaces XAP WAN Gateway: multi-site replication topologies
   (active-passive, active-active), bootstrapping a new site from an existing one's data,
-  selective replication filters, and cross-site conflict resolution. Use when the user mentions
-  WAN Gateway, WAN replication, multi-site XAP, cross-site DR, gateway delegator, gateway sink,
-  os-gateway, GatewaySinkFactoryBean, requires-bootstrap, AdminBootstrapInitiator,
-  IReplicationFilter, ConflictResolver, onDataConflict, DataConflict, or active-active/
-  active-passive space replication. Default XAP target version is 17.3.0 unless the user specifies
-  otherwise.
+  selective replication filters, cross-site conflict resolution, and adding/removing gateway
+  targets on a live space at runtime. Use when the user mentions WAN Gateway, WAN replication,
+  multi-site XAP, cross-site DR, gateway delegator, gateway sink, os-gateway,
+  GatewaySinkFactoryBean, requires-bootstrap, AdminBootstrapInitiator, IReplicationFilter,
+  ConflictResolver, onDataConflict, DataConflict, GatewayTarget, ReplicationManager,
+  addGatewayTarget, removeGatewayTarget, or active-active/active-passive space replication.
+  Default XAP target version is 17.3.0 unless the user specifies otherwise.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
@@ -39,6 +40,7 @@ own directory (`references/<file>.md`).
 | `references/bootstrap.md` | Bringing a new site online from an existing site's data: `requires-bootstrap`, `AdminBootstrapInitiator`, staged deploy order |
 | `references/replication-filter.md` | Selectively discarding replicated writes per-object with `IReplicationFilter` |
 | `references/conflict-resolution.md` | Reconciling records both sites modified independently, before the gateway link existed: `ConflictResolver`/`onDataConflict` |
+| `references/runtime-targets.md` | Adding/removing gateway targets on a live space via the Admin API, without redeploying: `GatewayTarget`, `ReplicationManager.addGatewayTarget`/`removeGatewayTarget` |
 
 ## Quick Decision Guide
 
@@ -48,7 +50,8 @@ User wants to...
   ├── Both sites accept writes, replicate to each other    → active-active.md
   ├── Add a new site and seed it from an existing site      → bootstrap.md
   ├── Replicate only some objects/fields to a target site   → replication-filter.md
-  └── Handle records both sites wrote before connecting     → conflict-resolution.md
+  ├── Handle records both sites wrote before connecting     → conflict-resolution.md
+  └── Pause/resume replication to a target without redeploying → runtime-targets.md
 ```
 
 A gateway PU can combine more than one of these — e.g. active-active *and* a filter on one
@@ -77,7 +80,9 @@ http://www.openspaces.org/schema/core/gateway/openspaces-gateway.xsd
 - **`<os-gateway:targets>`/`<os-gateway:target>`** — declared in the **space** PU (not the gateway
   PU), referenced from `<os-core:embedded-space gateway-targets="...">`. This is what actually
   makes writes to that space attempt delegation — the gateway PU's delegator only exists to carry
-  them once the space marks them for replication.
+  them once the space marks them for replication. `<os-gateway:target>` is `minOccurs="0"` — a
+  space can deploy with zero targets (gateway-enabled but replicating nowhere) and have targets
+  added/removed live via the Admin API afterward; see `runtime-targets.md`.
 - A site with **both** a delegator and a sink is a full peer (active-active). Delegator-only = pure
   source (active-passive's active side). Sink-only = pure target (active-passive's passive side).
 - **Deploying**: `gs.sh --server=<manager-host> service deploy --zones=<zone> [-p key=value ...]
@@ -95,6 +100,7 @@ http://www.openspaces.org/schema/core/gateway/openspaces-gateway.xsd
 | `requires-bootstrap="${someProperty}"` directly on `<os-gateway:sink>` | Fails at XML-parse time, before Spring ever resolves the placeholder — Xerces validates the element's `requires-bootstrap` attribute as XSD `boolean` and rejects a raw `${...}` string outright | Declare the sink as a plain `org.openspaces.core.gateway.GatewaySinkFactoryBean` bean instead of the `<os-gateway:sink>` element when this value must vary by deploy-time `-p` override — a bean property stays an ordinary `String` until Spring's own type conversion runs, which happens *after* placeholder resolution; see `bootstrap.md` |
 | A gateway process reachable on disjoint, non-routed subnets for its own site's manager vs. the remote gateway | `GS_NIC_ADDRESS` (or equivalent bind address) is JVM-wide — one address binds and advertises *every* LRMI export in that process, including the gateway's embedded LUS. It can't bind two different addresses for two different peers | Give the gateway process one address reachable by both its own site's manager and the remote gateway — route or peer the two sites' networks so that's possible, rather than trying to keep them segmented |
 | Assuming a connected (`INTACT`) gateway sink means data is flowing | `requires-bootstrap="true"` genuinely blocks automatic replication — a sink can show connected with the underlying space still at 0 objects until an explicit bootstrap runs | Don't mistake a bootstrap-pending sink for a broken link; check `bootstrap.md` before assuming a gateway misconfiguration |
+| Assuming a `CONNECTED` gateway (delegator+sink up) means the space has somewhere to replicate to | A space can deploy with an empty `<os-gateway:targets>` list — schema-valid, not a workaround — so it's gateway-enabled but sends nothing, even while the gateway link itself is fully connected | Check the space's live target list (or just try a write and confirm it lands remotely) before assuming a topology bug; add a target at runtime via the Admin API instead of redeploying — see `runtime-targets.md` |
 
 ---
 
@@ -126,4 +132,8 @@ import org.openspaces.admin.AdminFactory;
 import org.openspaces.admin.gateway.Gateway;
 import org.openspaces.admin.gateway.GatewaySinkSource;
 import org.openspaces.admin.gateway.BootstrapResult;
+
+// Runtime gateway-target Admin API (references/runtime-targets.md)
+import org.openspaces.admin.space.Space;
+import org.openspaces.core.gateway.GatewayTarget;
 ```
