@@ -13,7 +13,7 @@ Validated on IIDR 11.4.0.5 (build master_5726), Oracle 19c source, remote redo r
 `mirror_on_ddl_operation` is an **instance-level** parameter on the CDC engine, set with `dmset`:
 
 ```bash
-/giga/iidr/oracle/bin/dmset -I <INSTANCE> mirror_on_ddl_operation=<value>
+<engine-install>/bin/dmset -I <INSTANCE> mirror_on_ddl_operation=<value>
 ```
 
 **Two hard requirements:**
@@ -27,13 +27,13 @@ Validated on IIDR 11.4.0.5 (build master_5726), Oracle 19c source, remote redo r
 | Value | Behavior on source DDL |
 |---|---|
 | `STOP` (default) | Subscription **stops immediately** when any DDL on a replicated table is seen. Manual recovery required. |
-| `IGNORE` | DDL is ignored. ADD column tolerated; DROP / type-change are not. Per the reference doc it can still fail *later* on DML parsing with "latest table definition ... is newer than ... current operation" — **not tested here.** |
+| `IGNORE` | DDL is ignored. ADD column tolerated; DROP / type-change are not. Per the vendor documentation it can still fail *later* on DML parsing with "latest table definition ... is newer than ... current operation" — **not tested here.** |
 | `RESILIENT` | Subscription **keeps running**. New columns are silently **not** replicated until you manually map them; existing-column data of new rows keeps flowing. **Confirmed working on Oracle source (11.4.0.5).** |
 
-> ⚠️ The reference doc `Add coulmn TAU.odt` summary table claims "RESILIENT — not applicable for Oracle
-> source." That is **wrong** on this build — both the doc's own narrative (Oracle `STUD.TA_IDS`) and a direct
-> env1 test (`GSIIDR.TDE_PROBE`, ADD column + insert) show RESILIENT holding the subscription up on an Oracle
-> source. Trust the tested behavior, not that table cell.
+> ⚠️ Documentation summarizing this parameter claims "RESILIENT — not applicable for Oracle source."
+> That is **wrong** on this build — a direct test against an Oracle source (ADD column on a replicated
+> table, then insert, while mirroring) shows RESILIENT holding the subscription up. Trust the tested
+> behavior, not that table cell.
 
 ## Procedure — switch an instance to RESILIENT
 
@@ -87,8 +87,8 @@ The low-level equivalent is IBM's `dmreaddtable -a` from event 9505; the refresh
 | Pitfall | Consequence | Rule |
 |---|---|---|
 | Setting `dmset` but not restarting the engine | Old mode still active; test "fails" confusingly | Always restart the instance after `dmset` |
-| Trusting the doc's "not applicable for Oracle source" for RESILIENT | You'd needlessly avoid a working mode | It works on 11.4.0.5 Oracle source — verify, don't assume |
+| Trusting the vendor doc's "not applicable for Oracle source" for RESILIENT | You'd needlessly avoid a working mode | It works on 11.4.0.5 Oracle source — verify, don't assume |
 | Forgetting `COMMIT` on the source | Nothing replicates, looks like a failure | CDC reads committed redo only |
 | Expecting the new column to appear in the target | It won't under RESILIENT | New columns need manual pipeline mapping; only the stream survival is automatic |
 | `refresh` on a running subscription | HTTP 500 / `ERR2316` (real error only in the subman log) | Stop first; a FAILED sub can be refreshed directly |
-| `pl_tdeprobe`/`GS_3527` = env1's TDE canary | — | It's the permanent test pipeline; safe to run these DDL tests against |
+| Running these DDL tests against a live subscription | A failed test leaves real replication stopped | Use a dedicated throwaway table + pipeline as a canary |
