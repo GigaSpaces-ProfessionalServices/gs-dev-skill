@@ -41,7 +41,7 @@ GigaSpaces artifacts are NOT on Maven Central. Always add this repository:
 
     <properties>
         <gigaspaces.version>17.3.0</gigaspaces.version>
-        <spring.version>6.2.1</spring.version>
+        <spring.version>7.0.8</spring.version>
         <slf4j.version>2.0.11</slf4j.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
