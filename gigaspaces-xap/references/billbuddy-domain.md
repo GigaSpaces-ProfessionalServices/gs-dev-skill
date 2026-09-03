@@ -310,7 +310,7 @@ Long count = future.get(5, TimeUnit.SECONDS); // always bound the wait
 ```xml
 <properties>
     <gigaspaces.version>17.3.0</gigaspaces.version>
-    <spring.version>6.2.1</spring.version>
+    <spring.version>7.0.8</spring.version>
     <maven.compiler.source>17</maven.compiler.source>
     <maven.compiler.target>17</maven.compiler.target>
 </properties>
