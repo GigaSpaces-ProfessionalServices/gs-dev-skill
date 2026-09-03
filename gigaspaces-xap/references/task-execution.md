@@ -256,6 +256,57 @@ future.cancel(true);
 
 ---
 
+## Registering & Running a DurableTask
+
+Writing a `DurableTask` class isn't enough on its own — unlike `Task`/`DistributedTask`, a
+`DurableTask` must be **registered** with the space before it can run. Registration is what lets
+XAP track its status in ZooKeeper and support cancellation and failover recovery. There are two
+distinct usage patterns, chosen by `isAutoStart()`:
+
+```java
+UUID registerDurableTask(DurableTask<T, R> task);   // GigaSpace API
+AsyncFuture<R> executeDurable(UUID uuid);
+Set<DurableTaskInfo> listDurableTasks();
+Boolean unregisterDurableTask(UUID uuid);
+```
+
+**Pattern 1 — business logic task (`isAutoStart() == true`).** Register once; XAP calls
+`execute()` automatically on registration and again after every failover — never call
+`execute()` or `executeDurable()` yourself. Typical use: an embedded event container that must
+keep running for the life of the space. Only unregister when you intend to change the task's
+code (unregister → redeploy with a bumped `@SupportCodeChange` id → re-register):
+
+```java
+UUID taskId = gigaSpace.registerDurableTask(new EmbeddedPollingDurableTask());
+// EmbeddedPollingDurableTask.isAutoStart() returns true — starts immediately in every
+// primary partition and restarts automatically after failover. No executeDurable() call.
+```
+
+**Pattern 2 — long-running cancelable job (`isAutoStart() == false`).** Register, then
+explicitly call `executeDurable(uuid)` to start it — this is what makes cancellation and status
+tracking possible, unlike a plain `gigaSpace.execute(task)`. Unregister once the job is done or
+you want to stop tracking it:
+
+```java
+UUID taskId = gigaSpace.registerDurableTask(new ReconciliationTask());
+AsyncFuture<Long> future = gigaSpace.executeDurable(taskId);
+future.setListener(result -> {
+    if (result.getException() != null) {
+        log.error("Task failed", result.getException());
+    } else {
+        log.info("Reconciliation processed {} entries", result.getResult());
+    }
+});
+// ... later, to stop tracking it (does not itself cancel a still-running task — call
+// future.cancel(true) or gigaSpace.unregisterDurableTask before completion to abort it) ...
+gigaSpace.unregisterDurableTask(taskId);
+```
+
+`listDurableTasks()` and `unregisterDurableTask()` are also exposed via the XAP REST API
+(`/api/v3/swagger-ui`), useful for inspecting or stopping a task without redeploying code.
+
+---
+
 ## Routing vs Broadcast
 
 | | `gigaSpace.execute(task, routingKey)` | `gigaSpace.execute(distributedTask)` |
@@ -305,3 +356,4 @@ Double result = future.get();
 | Block inside `execute()` with no cancel check | Check `cancelled` flag periodically in long loops |
 | `reduce()` returns a bare count (e.g. `Long`, `Integer`) | Reduce into structured data (e.g. `Map<Category, Long>`) so callers don't need a follow-up query |
 | Unbounded `future.get()` on a DistributedTask | Blocks the caller indefinitely if a partition is slow or unreachable — use `future.get(timeout, TimeUnit)` |
+| Call `gigaSpace.execute(durableTask)` or `task.execute()` directly on a `DurableTask` | Bypasses registration — no status tracking, cancellation, or failover recovery. Use `registerDurableTask()` then either rely on `isAutoStart()` or call `executeDurable(uuid)` — see Registering & Running a DurableTask |

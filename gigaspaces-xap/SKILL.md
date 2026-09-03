@@ -1,7 +1,7 @@
 ---
 name: gigaspaces-xap
 description: >
-  Expert GigaSpaces XAP 17.3.0 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, distributed tracing, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.3.0 unless the user specifies otherwise.
+  Expert GigaSpaces XAP 17.3.0 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, distributed tracing, Property Storage Adapter, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.3.0 unless the user specifies otherwise.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
@@ -26,7 +26,7 @@ GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) a
 | `references/pojo-model.md` | @SpaceClass annotations, POJO design rules, SpaceDocument, @SupportCodeChange |
 | `references/space-operations.md` | GigaSpace API: write/read/take/change/count, SQLQuery, SpaceIterator, projections, transactions |
 | `references/event-containers.md` | Polling Container, Notify Container, FIFO, @TransactionalEvent |
-| `references/task-execution.md` | Task, DistributedTask, DurableTask, @TaskGigaSpace, AsyncFuture, routing vs broadcast |
+| `references/task-execution.md` | Task, DistributedTask, DurableTask (incl. registerDurableTask/executeDurable), @TaskGigaSpace, AsyncFuture, routing vs broadcast |
 | `references/custom-aggregators.md` | AbstractPathAggregator, Externalizable, index optimization, skipFullScanSupported, @SupportCodeChange |
 | `references/remoting.md` | Executor-Based Remoting, @RemotingService, @ExecutorProxy, broadcast reducers |
 | `references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
@@ -35,6 +35,7 @@ GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) a
 | `references/not-in-aggregator.md` | NOT IN custom aggregator: why indexes can't serve NOT IN, required @SpaceIndex, Payment/status example, when/when-not to use |
 | `references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
 | `references/mirror-persistence.md` | Mirror service (async write-behind persistence): pu.xml wiring, `PersistencyExceptionHandler`, default retry-forever-and-block behavior with no handler, bounded-retry/dead-letter boilerplate and its limitations, alternative exception-handling policies |
+| `references/storage-adapters.md` | Property Storage Adapters: `@SpacePropertyStorageAdapter`, `PropertyStorageAdapter.toSpace/fromSpace`, compressing/encrypting a single large property transparently, when to also extract queryable sub-fields |
 
 ## Quick Decision Guide
 
@@ -52,7 +53,8 @@ User wants to...
   ├── See a full working example         → billbuddy-domain.md
   ├── Query NOT IN on an indexed field   → not-in-aggregator.md
   ├── Add OpenTelemetry / tracing spans  → opentelemetry-tracing.md
-  └── Set up / review a Mirror (async persistence) → mirror-persistence.md
+  ├── Set up / review a Mirror (async persistence) → mirror-persistence.md
+  └── Store a large property compressed/encrypted → storage-adapters.md
 ```
 
 **Whenever a project includes a Mirror PU** (`<os-core:mirror>`, `mirrored="true"` on a source space,
@@ -112,6 +114,8 @@ Always flag these when you see them in user code or questions:
 | Mutating an entry read via an embedded/local proxy in place | Embedded proxy returns a live reference, not a copy — can throw `ConcurrentModificationException` or desync an indexed collection field | Deep-copy before mutating; make indexed embedded-collection fields immutable; see `space-operations.md` and `pojo-model.md` |
 | `DistributedTask.reduce()` returns a bare count (e.g. `Long`) | Discards per-category/per-entry detail callers usually need next | Reduce into structured data, e.g. `Map<Category, Long>`; see `task-execution.md` |
 | `<os-core:mirror>` / `space-sync-endpoint` with no `PersistencyExceptionHandler` wired in | Persistence failures propagate to the primary's logs and the primary retries the batch forever — the replication channel blocks and the redo log grows unbounded | Wrap the sync endpoint with `SpaceSynchronizationEndpointExceptionHandler` + a `PersistencyExceptionHandler`; see `mirror-persistence.md` for the default behavior, boilerplate, and its own caveats |
+| Calling `execute()`/`gigaSpace.execute(task)` directly on a `DurableTask` | Bypasses registration — no status tracking, cancellation, or failover recovery | Register with `gigaSpace.registerDurableTask(task)`, then rely on `isAutoStart()` or call `executeDurable(uuid)`; see `task-execution.md` |
+| Relying on a `@SpacePropertyStorageAdapter`-adapted property for `SQLQuery` filters on its internal structure | The stored form (e.g. compressed bytes) generally isn't queryable on its sub-fields, only via `supportsEqualsMatching`/`supportsOrderedMatching` on the whole value | Extract queryable sub-fields into separate plain, indexed properties; see `storage-adapters.md` |
 
 ---
 
@@ -197,4 +201,10 @@ import org.openspaces.persistency.patterns.PersistencyExceptionHandler;
 import org.openspaces.persistency.patterns.SpaceSynchronizationEndpointExceptionHandler;
 import com.gigaspaces.sync.DataSyncOperation;
 import com.gigaspaces.sync.OperationsBatchData;
+
+// Property Storage Adapters (see storage-adapters.md)
+import com.gigaspaces.annotation.pojo.SpacePropertyStorageAdapter;
+import com.gigaspaces.client.storage_adapters.PropertyStorageAdapter;
+import com.gigaspaces.client.storage_adapters.BinaryWrapper;
+import com.gigaspaces.internal.io.CompressedMarshObject;
 ```
