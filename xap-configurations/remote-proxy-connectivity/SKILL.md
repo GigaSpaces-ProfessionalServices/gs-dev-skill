@@ -29,6 +29,17 @@ docs.
 **Default target version: XAP 17.3.0.** The smart-externalizable pitfall is version-specific —
 don't carry it forward to a different version pair without re-verifying.
 
+**This skill's scope is the remote client side only.** A remote/independent client needs exactly
+three things — space name, `GS_LOOKUP_LOCATORS`, `GS_LOOKUP_GROUPS` (or their code/`-D` equivalents)
+— and that doesn't change based on what the target grid runs. A Manager embeds the same LUS this
+skill's locators/groups discovery talks to, so the client-side mechanism is identical whether the
+grid is a standalone GSM/LUS or a Manager.
+
+What *does* differ is server-side setup — standing up the Manager, `GS_MANAGER_SERVERS`, its ports,
+its logs. That's out of scope here: see the sibling `environment-variables-and-manager` skill's
+`manager.md` for it. Use that skill when the question is "how do I configure/run the Manager"; use
+this skill when the question is "why can't my client connect."
+
 ## Triage first — not every "can't connect" is a discovery-layer problem
 
 The reference files below cover the locators/groups/discovery layer in depth, but that's rarely
@@ -45,7 +56,9 @@ of these produce a symptom that's indistinguishable from one at the client:
    *should* be using, not an assumption or a value copied from a config file that might itself be
    stale. Comparing the client's attempted locators/groups against this is the actual diagnosis;
    guessing at the server side or trusting a doc/config value nobody re-checked is how time gets
-   wasted chasing the wrong fix.
+   wasted chasing the wrong fix. If the target is a GigaSpaces Manager rather than a standalone
+   LUS/GSM, see `environment-variables-and-manager`'s `manager.md` for where the Manager's log
+   actually lives and its default ports.
 3. **Check the GSC log for evidence the space actually deployed successfully, and confirm the exact
    space name while you're there.** A GSC that never finished starting the space (a failed
    initializer, a missing dependency, a schema/partition count that never converged) never registers
@@ -103,6 +116,7 @@ question**, using paths relative to this skill's own directory (`references/<fil
 
 ```
 User's proxy can't find/connect to a space...
+  ├── Question is about configuring/running the Manager itself, or GS_MANAGER_SERVERS   → out of scope here; environment-variables-and-manager's manager.md
   ├── Haven't ruled out network/target-health/version/GC/auth yet     → Triage section above, first
   ├── Works on one machine/network, fails on another (Docker/WAN/cloud), no config change → locators-and-groups.md
   ├── CannotFindSpaceException / FinderException thrown                                    → locators-and-groups.md
@@ -128,12 +142,20 @@ advertises under). Of the three, groups is the one that's frequently unnecessary
 All three can be "live" in a process at once, with no confirmed precedence between them — see the
 reference file before assuming which one wins.
 
+`GS_MANAGER_SERVERS` is set only on the cluster's own machines (Managers, GSCs, GSAs), per
+`environment-variables-and-manager`'s `manager.md` — a remote/independent client should always use
+`GS_LOOKUP_LOCATORS` instead. If a client this skill covers has `GS_MANAGER_SERVERS` set at all,
+that's the misconfiguration to remove: **confirmed** against a real local Manager (XAP 17.3.0), a
+client with both set fails fast with `IllegalStateException: Ambiguous locators: Manager locators:
+[...], explicit locators: [...]` before any discovery attempt — not a silent preference of one over
+the other, and not merely "confusing" — see `locators-and-groups.md`.
+
 ## Troubleshooting
 
 Both reference files end with their own **Pitfalls index** (symptom → cause → fix). Check the table
-in the relevant file before improvising a diagnosis — most failure modes here (a locator masked by
-multicast, multicast bleeding across environments, a wrong space name, a deployed-vs-standalone
-discrepancy, smart-externalizable) have a known, non-obvious cause already documented there.
+in the relevant file before diagnosing — most failure modes here (a locator masked by multicast,
+multicast bleeding across environments, a wrong space name, a deployed-vs-standalone discrepancy,
+smart-externalizable) have a known cause already documented there.
 
 ## Imports / Class Cheat Sheet
 

@@ -52,6 +52,24 @@ values at once. If conflicting values turn up across these three sources, clear 
 intend to use rather than assume which one wins — a stale env var or sysprop left over from a
 previous run is a common way these conflicts happen in the first place.
 
+`GS_MANAGER_SERVERS` is set only on the cluster's own machines (Managers, GSCs, GSAs), never on a
+remote/independent client, per the sibling `environment-variables-and-manager` skill's `manager.md`.
+It's worth knowing about anyway because a misconfigured fleet can leak it onto a client by accident (a
+copied `setenv-overrides`, an env var inherited from the wrong host template): that variable already
+carries LUS locator information for the Manager's embedded LUS. If a client this skill covers has
+`GS_MANAGER_SERVERS` set at all, that's the misconfiguration to remove.
+
+**Confirmed** against a real Manager (XAP 17.3.0, `gs.sh host run-agent --manager` with
+`GS_MANAGER_SERVERS` set explicitly — the shared-server setup, not the `--auto` local-dev shortcut
+that never needs `GS_MANAGER_SERVERS` set at all): setting
+`GS_MANAGER_SERVERS` and `GS_LOOKUP_LOCATORS` together doesn't produce a vague "confusing discovery
+behavior" or a silent preference of one over the other — `SpaceProxyConfigurer` fails immediately,
+before any discovery attempt is made, with `java.lang.IllegalStateException: Ambiguous locators:
+Manager locators: [...], explicit locators: [...]`. `GS_MANAGER_SERVERS` alone (no
+`GS_LOOKUP_LOCATORS`) does correctly derive the Manager's embedded-LUS locator on its own, matching
+`manager.md`'s finding from the GSC-log side, now independently reconfirmed from the client-side
+`FinderException`.
+
 ## Groups are optional — explicit locators bypass group matching entirely
 
 A `SpaceProxyConfigurer` with only `lookupLocators()` set connects successfully with no
@@ -147,23 +165,23 @@ Read the exception's own dump before guessing — it states exactly what was tri
 - **`Lookup timeout`** — if discovery is generally slow on the target network, a real space might
   just need a longer `.lookupTimeout(...)` before this fires as a false negative.
 
-## smart-externalizable — do not set it at all on 17.3.0
+## smart-externalizable — must match on both sides
 
-Older XAP versions supported a `com.gs.smart-externalizable.enabled` optimization flag. On 17.3.0
-it should not be set at all — not `true`, not `false` — on either the client or the server.
+`com.gs.smart-externalizable.enabled` is a serialization-optimization flag. **The rule is that it
+must be set to the same value (`true` or `false`) on both the client and the server**, not that it
+should be avoided entirely. A mismatch between the two sides is what causes the failure below.
 
-The failure mode when it's set on the server only (a leftover from an older-version migration that
-never got cleaned out of a launch script, JVM-args template, or env-var override) is specifically
-misleading: the space is genuinely up and correctly registered — discovery succeeds, the space shows
-up as running — but the client still can't get a working proxy to it. It presents as a generic
-"cannot find space" symptom even though
-the actual cause is a proxy-deserialization mismatch, not a discovery problem at all.
+The failure mode when the two sides disagree (e.g. a leftover from an older-version migration that
+never got cleaned out of a launch script, JVM-args template, or env-var override on just one side)
+is specifically misleading: the space is genuinely up and correctly registered — discovery
+succeeds, the space shows up as running — but the client still can't get a working proxy to it. It
+presents as a generic "cannot find space" symptom even though the actual cause is a
+proxy-deserialization mismatch, not a discovery problem at all.
 
-If you're troubleshooting on 17.3.0 and find `com.gs.smart-externalizable.enabled` set anywhere
-(client launch args, server `GS_OPTIONS_EXT`/`setenv-overrides.sh`, an old IDE run config carried
-forward from a prior version) — remove it, don't try to reconcile client/server values. (Only on
-versions old enough to actually need this flag: if it must be set, it must be set identically on
-both client and server, or you'll see the same symptom.)
+If you find `com.gs.smart-externalizable.enabled` set on one side (client launch args, server
+`GS_OPTIONS_EXT`/`setenv-overrides.sh`, an old IDE run config carried forward from a prior setup),
+check what the other side is actually running with — set both sides to the same value explicitly,
+or remove it from both.
 
 ## Prefer SpaceProxyConfigurer over UrlSpaceConfigurer
 
@@ -201,7 +219,8 @@ that behaves the same on a network with or without multicast.
 | Client's space name looks right at a glance but still isn't found, even with locators/groups confirmed correct | A subtly wrong space name — case mismatch, a stray cluster-schema suffix (e.g. `-mirror`), or the PU name used where the space name was meant | Check the GSC log for the space's actual registered name rather than trusting the client config or a doc value; fix the client to match exactly |
 | Client connects to an unexpected space despite a "wrong" group being set | Explicit locators bypass group filtering entirely — group isn't a safety net here | Use distinct space names or genuinely separate locator values per environment instead of relying on group |
 | A client or discovery tool (Admin UI, `gs.sh`, an IDE plugin) unexpectedly finds/connects to a space in an unrelated environment (e.g. dev reaching staging or prod) | Multicast enabled with no explicit locator matches *any* reachable lookup service advertising the same default group, regardless of which environment it belongs to | Disable multicast for that environment (`-Dcom.gs.multicast.enabled=false`) and require explicit locators instead — this is standard practice in many shops specifically to prevent this, not just a network hardening step |
-| "Cannot find space" even though the space is confirmed up and registered | `com.gs.smart-externalizable.enabled` set on server (or client) alone under 17.3.0 breaks proxy deserialization | Remove the setting entirely on 17.3.0 — don't try to match it across client/server |
+| "Cannot find space" even though the space is confirmed up and registered | `com.gs.smart-externalizable.enabled` set to different values (or set on only one side) between client and server | Set the same value (`true` or `false`) on both sides, or remove it from both |
 | Legacy client fails to connect only on a network without multicast | `UrlSpaceConfigurer` with a `jini://*/*/name` wildcard URL depends on multicast | Switch to `SpaceProxyConfigurer` with explicit `lookupLocators()` |
+| Client throws `IllegalStateException: Ambiguous locators: Manager locators: [...], explicit locators: [...]` before any discovery attempt | `GS_MANAGER_SERVERS` and `GS_LOOKUP_LOCATORS` are both set on the same client — a fail-fast check, not a silent preference | Remove `GS_LOOKUP_LOCATORS` — a remote/independent client should never have `GS_MANAGER_SERVERS` set in the first place, see `environment-variables-and-manager`'s `manager.md` |
 | Conflicting locator/group values appear to be set in more than one place (code, `-D`, env var) | No confirmed precedence between the three sources | Clear all but the one you intend to use rather than assume which wins |
 | Need to confirm whether a locator is actually correct, without multicast quietly masking a bad one | Multicast discovery runs in parallel with unicast locator discovery by default | Rerun the client once with `-Dcom.gs.multicast.enabled=false` — a genuinely bad locator will now fail instead of silently succeeding |
