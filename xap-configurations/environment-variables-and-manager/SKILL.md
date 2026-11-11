@@ -1,24 +1,18 @@
 ---
 name: environment-variables-and-manager
 description: >
-  Guidance for configuring GigaSpaces XAP 17.3.0 environment variables and the GigaSpaces Manager.
-  Covers the setenv/setenv-overrides mechanism, which GS_* environment variables are current vs.
-  legacy (GS_GSM_OPTIONS/GS_LUS_OPTIONS are ignored once a Manager is in play), and how to
-  properly set up the GigaSpaces Manager: local single-Manager development, a production 3-Manager
-  HA cluster via GS_MANAGER_SERVERS, ports, the embedded ZooKeeper's configuration (zoo.cfg,
-  GS_ZOOKEEPER_SERVER_CONFIG_FILE, leader-election tuning), and securing
-  ZooKeeper with TLS. Use when the user mentions setenv, setenv-overrides, GS_HOME,
-  GS_LOOKUP_GROUPS, GS_LOOKUP_LOCATORS, GS_NIC_ADDRESS, GS_MANAGER_SERVERS, GS_MANAGER_OPTIONS,
-  GS_GSC_OPTIONS, GS_GSM_OPTIONS, GS_GSA_OPTIONS, GS_LUS_OPTIONS, GS_RESTV3_OPTIONS, GS_REST_V3_PORT,
-  GS_CLI_OPTIONS,
-  GS_OPTIONS_EXT,
-  GS_OPTIONS, GS_LIBRARY_PATH, GS_ZOOKEEPER_SERVER_CONFIG_FILE, XAP_LOOKUP_LOCATORS, XAP_NIC_ADDRESS,
-  XAP_HOME, legacy XAP_ environment variable prefix, DurableTask management via REST,
-  GigaSpaces Manager, gs-agent --manager, high availability / HA cluster setup, ZooKeeper / zoo.cfg /
-  zookeeper-server.cfg / zoo-client.cfg, GSM leader election, com.gs.home, com.gs.deploy, com.gs.work,
-  com.gs.pu-common, com.gigaspaces.lib.platform.ext, com.gs.multicast.enabled,
-  java.util.logging.config.file, com.gs.jini_lus.locators, com.gs.jini_lus.groups, GigaSpaces system
-  properties, or GigaSpaces environment variable configuration in general.
+  Configuring GigaSpaces XAP 17.3.0 environment variables, system properties, and the GigaSpaces
+  Manager: single-instance dev, 3-Manager HA, ports, embedded ZooKeeper config and TLS. Use when
+  the user mentions setenv, setenv-overrides, GS_HOME, GS_LOOKUP_GROUPS, GS_LOOKUP_LOCATORS,
+  GS_NIC_ADDRESS, GS_MANAGER_SERVERS, GS_MANAGER_OPTIONS, GS_GSC_OPTIONS, GS_GSM_OPTIONS,
+  GS_GSA_OPTIONS, GS_LUS_OPTIONS, GS_RESTV3_OPTIONS, GS_REST_V3_PORT, GS_CLI_OPTIONS,
+  GS_OPTIONS_EXT, GS_OPTIONS, GS_LIBRARY_PATH, GS_ZOOKEEPER_SERVER_CONFIG_FILE, legacy XAP_
+  variables (XAP_HOME, XAP_LOOKUP_LOCATORS, XAP_NIC_ADDRESS), DurableTask management via REST,
+  gs-agent --manager, Manager HA, zoo.cfg, zookeeper-server.cfg, zoo-client.cfg, GSM leader
+  election, com.gs.home, com.gs.deploy, com.gs.work, com.gs.pu-common,
+  com.gigaspaces.lib.platform.ext, com.gs.multicast.enabled, java.util.logging.config.file,
+  com.gs.jini_lus.locators, com.gs.jini_lus.groups, or GigaSpaces environment/system-property
+  configuration in general.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
