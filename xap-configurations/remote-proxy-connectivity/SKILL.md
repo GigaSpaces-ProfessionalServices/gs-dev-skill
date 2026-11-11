@@ -1,19 +1,17 @@
 ---
 name: remote-proxy-connectivity
 description: >
-  Field-validated guidance for troubleshooting GigaSpaces XAP 17.3.0 remote SpaceProxy connectivity
-  - the client-side connection to a running space over locators/groups discovery. Covers
-  SpaceProxyConfigurer vs UrlSpaceConfigurer, how GS_LOOKUP_LOCATORS/GS_LOOKUP_GROUPS env vars and
-  -Dcom.gs.jini_lus.locators/-Dcom.gs.jini_lus.groups system properties actually behave, why lookup
-  groups are often unnecessary once locators are set, the real CannotFindSpaceException /
-  FinderException ("lookup finder" error) and how to read it, the smart-externalizable pitfall on
-  17.3.0, and the DIFFERENT default connectivity behavior of a remote proxy created by code running
-  inside a Processing Unit deployed to the grid (GSC) versus an independent standalone client. Use
-  when the user mentions a proxy that can't find/connect to a space, CannotFindSpaceException,
-  FinderException, LookupFinder, "cannot find space", lookup timeout, GS_LOOKUP_LOCATORS,
-  GS_LOOKUP_GROUPS, com.gs.jini_lus.locators, com.gs.jini_lus.groups, lookup groups, lookup locators,
-  smart-externalizable, UrlSpaceConfigurer, SpaceProxyConfigurer connectivity problems in general, or
-  why a deployed PU's space-proxy behaves differently than a standalone client / gs.sh pu run.
+  Troubleshooting GigaSpaces XAP 17.3.0 remote SpaceProxy connectivity: a client connecting to a
+  running space via locators/groups discovery. Covers SpaceProxyConfigurer vs UrlSpaceConfigurer,
+  how GS_LOOKUP_LOCATORS/GS_LOOKUP_GROUPS and -Dcom.gs.jini_lus.locators/-Dcom.gs.jini_lus.groups
+  behave, why groups are often unnecessary once locators are set, reading CannotFindSpaceException
+  / FinderException, the 17.3.0 smart-externalizable pitfall, and why a proxy created inside a
+  deployed PU (GSC) behaves differently from a standalone client. Use when the user mentions a
+  proxy that can't find/connect to a space, CannotFindSpaceException, FinderException,
+  LookupFinder, "cannot find space", lookup timeout, GS_LOOKUP_LOCATORS, GS_LOOKUP_GROUPS,
+  com.gs.jini_lus.locators, com.gs.jini_lus.groups, lookup groups, lookup locators,
+  smart-externalizable, UrlSpaceConfigurer, SpaceProxyConfigurer connectivity problems, or a
+  deployed PU's proxy behaving differently than a standalone client / gs.sh pu run.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
@@ -23,8 +21,7 @@ metadata:
 # Remote Proxy Connectivity — Troubleshooting Skill
 
 Guidance for diagnosing why a client can't get a working `SpaceProxy` to a remote XAP space —
-field-validated against a real standalone XAP 17.3.0 space and a real local grid, not guessed from
-docs.
+verified in a lab against a standalone XAP 17.3.0 space and a local grid, not guessed from docs.
 
 **Default target version: XAP 17.3.0.** The smart-externalizable pitfall is version-specific —
 don't carry it forward to a different version pair without re-verifying.

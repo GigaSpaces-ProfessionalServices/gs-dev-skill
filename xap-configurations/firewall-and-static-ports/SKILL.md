@@ -1,21 +1,18 @@
 ---
 name: firewall-and-static-ports
 description: >
-  Field-validated guidance for running GigaSpaces XAP 17.3.0 across a firewall or through NAT:
-  disabling multicast, statically pinning every component's listener ports (Lookup Service,
-  Webster, LRMI transport range, JMX/RMI-registry), how a single shared LRMI/JMX range set via
-  GS_OPTIONS_EXT is sufficient even for components co-located on one host (XAP allocates
-  sequentially within it), which ports actually need to be opened in a firewall versus which stay
-  admin-only, and the LRMI network-mapping-file mechanism for
-  translating an internal bind address to an externally-reachable one. Verified against a real
-  two-container Docker cluster with an actually-enforced iptables firewall boundary, not just
-  "the port wasn't published." Use when the user mentions GigaSpaces over a firewall, NAT, static
-  ports, com.gs.transport_protocol.lrmi.bind-port, com.gs.multicast.discoveryPort,
-  com.gigaspaces.start.httpPort, com.gigaspaces.system.registryPort,
-  com.sun.jini.reggie.initialUnicastDiscoveryPort, network_mapping.config, DefaultNetworkMapper,
+  Guidance for running GigaSpaces XAP 17.3.0 across a firewall or through NAT: disabling
+  multicast, statically pinning listener ports (Lookup Service, Webster, LRMI transport range,
+  JMX/RMI registry), using one shared LRMI/JMX range via GS_OPTIONS_EXT for co-located components,
+  which ports must be opened versus kept admin-only, and LRMI network mapping to translate an
+  internal bind address to an externally reachable one. Use when the user mentions GigaSpaces over
+  a firewall, NAT, static ports, com.gs.transport_protocol.lrmi.bind-port,
+  com.gs.multicast.discoveryPort, com.gigaspaces.start.httpPort,
+  com.gigaspaces.system.registryPort, com.sun.jini.reggie.initialUnicastDiscoveryPort,
+  network_mapping.config, DefaultNetworkMapper,
   com.gs.transport_protocol.lrmi.network-mapping-file, Webster port, JMX port exposure, port
-  ranges, or exposing/publishing GigaSpaces ports through Docker, a corporate firewall, or a cloud
-  security group.
+  ranges, or exposing GigaSpaces ports through Docker, a corporate firewall, or a cloud security
+  group.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
