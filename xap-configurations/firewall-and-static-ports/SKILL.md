@@ -1,7 +1,7 @@
 ---
 name: firewall-and-static-ports
 description: >
-  Guidance for running GigaSpaces XAP 17.3.0 across a firewall or through NAT: disabling
+  Guidance for running GigaSpaces XAP 18.0.1 across a firewall or through NAT: disabling
   multicast, statically pinning listener ports (Lookup Service, Webster, LRMI transport range,
   JMX/RMI registry), using one shared LRMI/JMX range via GS_OPTIONS_EXT for co-located components,
   which ports must be opened versus kept admin-only, and LRMI network mapping to translate an
@@ -21,7 +21,7 @@ metadata:
 
 # Firewall & Static Ports — Configuration Skill
 
-Guidance for making a GigaSpaces XAP 17.3.0 cluster reachable across a firewall or NAT boundary:
+Guidance for making a GigaSpaces XAP 18.0.1 cluster reachable across a firewall or NAT boundary:
 disabling multicast, statically pinning every listener port, and knowing which of those ports
 actually need to cross the boundary. Where a claim is marked **Confirmed**, it's been reproduced
 against a real two-container (Manager + GSC) XAP 17.3.0 cluster on Docker with a real `iptables`
@@ -29,7 +29,7 @@ firewall rule enforcing the port boundary — not just inferred from a port bein
 which this skill's own lab proved is *not* sufficient evidence on a host where the container
 network happens to be directly routable (see `references/static-ports.md`).
 
-**Default target version: XAP 17.3.0.**
+**Default target version: XAP 18.0.1.**
 
 **Goal this skill's port guidance is scoped to, stated explicitly**: an external client, outside
 the firewall, discovers and performs read/write operations against an already-deployed space. A

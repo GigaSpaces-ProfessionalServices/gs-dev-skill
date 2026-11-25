@@ -22,7 +22,7 @@ same `CannotFindSpaceException`/`FinderException` an independent client gets —
 the real difference:
 
 ```
-Jini Lookup Groups: [xap-17.3.0]
+Jini Lookup Groups: [xap-18.0.1]
 Jini Lookup Locators: [jini://localhost:4174/]
 Number of Lookup Services: 1
 ```
@@ -31,7 +31,7 @@ Number of Lookup Services: 1
 space registered under that name. **A proxy created inside a deployed PU defaults its locator to
 the grid's own manager lookup service** (the same one its GSC joined at startup) instead of leaving
 locators empty and relying on multicast. The default *group* is unaffected — still the ordinary
-version-derived default (`xap-17.3.0`). This is why a `gs blueprint stateless` template can ship
+version-derived default (`xap-18.0.1`). This is why a `gs blueprint stateless` template can ship
 with no locators/groups anywhere in `gs-service-config.yaml` and "just work" once deployed: the grid
 supplies a working locator for free, not because groups/locators stopped mattering.
 

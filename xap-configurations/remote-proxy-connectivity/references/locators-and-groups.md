@@ -108,7 +108,7 @@ service on the same network — `LookupLocatorDiscovery` logs a `Connection refu
 bad locator and moves on, but multicast discovery finds the space anyway in parallel.
 
 This isn't the client falling back to matching *any* group, either — "no group set" resolves to a
-real, version-derived default group (`xap-17.3.0`, for example), not a wildcard. Groups "feel"
+real, version-derived default group (`xap-18.0.1`, for example), not a wildcard. Groups "feel"
 optional mainly because that default happens to match an unconfigured space's own default group.
 
 This means a genuinely wrong locator value can sit in a config doing nothing useful for a long time
@@ -157,7 +157,7 @@ Read the exception's own dump before guessing — it states exactly what was tri
   listening on (`nc -zv host port`, or the target space's own startup log for its `locator=jini://...`
   line).
 - **`Jini Lookup Groups`** — the actual group(s) the client tried. Compare against the target
-  space's startup log line (`Started Lookup Service [... groups=[xap-17.3.0] ...]`) — but this only
+  space's startup log line (`Started Lookup Service [... groups=[xap-18.0.1] ...]`) — but this only
   matters for multicast discovery; if locators are also wrong, fixing the group alone won't help.
 - **`Number of Lookup Services: 0`** — confirms no LUS was found via either path in the given
   timeout. If this number is nonzero, a LUS was found but didn't have the named space registered —

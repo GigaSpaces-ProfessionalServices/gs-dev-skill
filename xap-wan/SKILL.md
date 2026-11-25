@@ -9,7 +9,7 @@ description: >
   GatewaySinkFactoryBean, requires-bootstrap, AdminBootstrapInitiator, IReplicationFilter,
   ConflictResolver, onDataConflict, DataConflict, GatewayTarget, ReplicationManager,
   addGatewayTarget, removeGatewayTarget, or active-active/active-passive space replication.
-  Default XAP target version is 17.3.0 unless the user specifies otherwise.
+  Default XAP target version is 18.0.1 unless the user specifies otherwise.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
@@ -23,7 +23,7 @@ geographically separate (e.g. US and EMEA) — for disaster recovery, data local
 active-active applications. Each site is a normal, fully independent XAP grid; the gateway is a
 separate Processing Unit per site that ships changes across the link.
 
-**Default target version: XAP 17.3.0**
+**Default target version: XAP 18.0.1**
 
 ---
 

@@ -1,8 +1,8 @@
-# XAP 17.3.0 Maven Setup
+# XAP 18.0.1 Maven Setup
 
 ## Version String
 
-Maven artifact version: **`17.3.0`**
+Maven artifact version: **`18.0.1`**
 
 ## Repository
 
@@ -40,11 +40,11 @@ GigaSpaces artifacts are NOT on Maven Central. Always add this repository:
     <packaging>pom</packaging>
 
     <properties>
-        <gigaspaces.version>17.3.0</gigaspaces.version>
+        <gigaspaces.version>18.0.1</gigaspaces.version>
         <spring.version>7.0.8</spring.version>
         <slf4j.version>2.0.11</slf4j.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
@@ -92,10 +92,10 @@ GigaSpaces artifacts are NOT on Maven Central. Always add this repository:
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.13.0</version>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>25</source>
+                    <target>25</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -134,9 +134,9 @@ Use this pattern for feeder clients, REST gateways, and standalone apps that con
     </parent>
 
     <properties>
-        <gigaspaces.version>17.3.0</gigaspaces.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
+        <gigaspaces.version>18.0.1</gigaspaces.version>
+        <maven.compiler.source>25</maven.compiler.source>
+        <maven.compiler.target>25</maven.compiler.target>
     </properties>
 
     <repositories>
@@ -274,7 +274,7 @@ mvn install:install-file \
   -Dfile=$GS_HOME/lib/required/xap-asm.jar \
   -DgroupId=org.gigaspaces \
   -DartifactId=xap-asm \
-  -Dversion=17.3.0 \
+  -Dversion=18.0.1 \
   -Dpackaging=jar
 ```
 

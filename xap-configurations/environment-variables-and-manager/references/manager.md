@@ -92,7 +92,7 @@ discovery attempt, with `java.lang.IllegalStateException: Ambiguous locators: Ma
 harmless redundancy — see the sibling `remote-proxy-connectivity` skill's `locators-and-groups.md`
 for the client-side detail. **Confirmed** against the same real cluster: a GSC given only
 `GS_MANAGER_SERVERS=manager1,manager2,manager3` (no `GS_LOOKUP_LOCATORS`, no explicit locators
-anywhere) logged `GSC started successfully [groups=[xap-17.3.0],
+anywhere) logged `GSC started successfully [groups=[xap-18.0.1],
 locators=[jini://manager1:4174/, jini://manager2:4174/, jini://manager3:4174/]]` and registered with
 all three GSMs — `GS_MANAGER_SERVERS` genuinely derives working LUS locators on its own, not just
 per the docs. If a client is genuinely failing to connect and this conflict is ruled out, that's

@@ -105,7 +105,7 @@ iterator.close(); // always close to release server-side resources
 <dependency>
     <groupId>com.gigaspaces</groupId>
     <artifactId>xap-jdbc</artifactId>
-    <version>17.3.0</version>
+    <version>18.0.1</version>
 </dependency>
 ```
 

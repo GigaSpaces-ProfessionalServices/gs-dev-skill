@@ -1,7 +1,7 @@
 ---
 name: remote-proxy-connectivity
 description: >
-  Troubleshooting GigaSpaces XAP 17.3.0 remote SpaceProxy connectivity: a client connecting to a
+  Troubleshooting GigaSpaces XAP 18.0.1 remote SpaceProxy connectivity: a client connecting to a
   running space via locators/groups discovery. Covers SpaceProxyConfigurer vs UrlSpaceConfigurer,
   how GS_LOOKUP_LOCATORS/GS_LOOKUP_GROUPS and -Dcom.gs.jini_lus.locators/-Dcom.gs.jini_lus.groups
   behave, why groups are often unnecessary once locators are set, reading CannotFindSpaceException
@@ -23,7 +23,7 @@ metadata:
 Guidance for diagnosing why a client can't get a working `SpaceProxy` to a remote XAP space —
 verified in a lab against a standalone XAP 17.3.0 space and a local grid, not guessed from docs.
 
-**Default target version: XAP 17.3.0.** The smart-externalizable pitfall is version-specific —
+**Default target version: XAP 18.0.1.** The smart-externalizable pitfall is version-specific —
 don't carry it forward to a different version pair without re-verifying.
 
 **This skill's scope is the remote client side only.** A remote/independent client needs exactly
@@ -49,7 +49,7 @@ of these produce a symptom that's indistinguishable from one at the client:
    start from.
 2. **Read the server/manager's own logs for what it's actually advertising**, before touching the
    client at all. The manager/space startup log states the real locator and group(s) directly (e.g.
-   `Started Lookup Service [... groups=[xap-17.3.0] ...]`) — that's ground truth for what the client
+   `Started Lookup Service [... groups=[xap-18.0.1] ...]`) — that's ground truth for what the client
    *should* be using, not an assumption or a value copied from a config file that might itself be
    stale. Comparing the client's attempted locators/groups against this is the actual diagnosis;
    guessing at the server side or trusting a doc/config value nobody re-checked is how time gets

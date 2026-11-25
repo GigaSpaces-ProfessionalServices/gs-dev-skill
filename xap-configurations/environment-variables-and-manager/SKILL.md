@@ -1,7 +1,7 @@
 ---
 name: environment-variables-and-manager
 description: >
-  Configuring GigaSpaces XAP 17.3.0 environment variables, system properties, and the GigaSpaces
+  Configuring GigaSpaces XAP 18.0.1 environment variables, system properties, and the GigaSpaces
   Manager: single-instance dev, 3-Manager HA, ports, embedded ZooKeeper config and TLS. Use when
   the user mentions setenv, setenv-overrides, GS_HOME, GS_LOOKUP_GROUPS, GS_LOOKUP_LOCATORS,
   GS_NIC_ADDRESS, GS_MANAGER_SERVERS, GS_MANAGER_OPTIONS, GS_GSC_OPTIONS, GS_GSM_OPTIONS,
@@ -28,7 +28,7 @@ production 3-node HA cluster. Where a claim is marked **Confirmed**, it's been r
 real 3-Manager XAP 17.3.0 cluster on Docker, not just read off the docs — where it isn't marked that
 way, it's documented behavior that hasn't been independently verified by this skill yet.
 
-**Default target version: XAP 17.3.0.**
+**Default target version: XAP 18.0.1.**
 
 **This skill covers server/grid-side setup — for diagnosing why a *client* can't connect to a
 space**, use the sibling `remote-proxy-connectivity` skill instead. The two overlap at exactly one
