@@ -2,7 +2,7 @@
 
 This reference covers how to instrument GigaSpaces Processing Units with OpenTelemetry spans, using Zipkin as the tracing backend. Based on a validated working implementation.
 
-**XAP Version:** 17.3.0  
+**XAP Version:** 18.0.1  
 **OTel API Version:** `io.opentelemetry:opentelemetry-api:1.40.0`  
 **Zipkin:** v2 JSON API (`/api/v2/spans`)
 
@@ -33,7 +33,7 @@ The OTel **SDK** (`SdkTracerProvider`) cannot be bundled inside a GigaSpaces PU 
 <dependency>
     <groupId>org.gigaspaces</groupId>
     <artifactId>xap-reporter</artifactId>
-    <version>17.3.0</version>
+    <version>18.0.1</version>
     <scope>compile</scope>
 </dependency>
 ```

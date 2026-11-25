@@ -1,4 +1,4 @@
-# XAP POJO Model & Annotations (XAP 17.3.0)
+# XAP POJO Model & Annotations (XAP 18.0.1)
 
 ## Class-Level Annotations
 

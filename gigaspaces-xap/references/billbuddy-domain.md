@@ -1,4 +1,4 @@
-# BillBuddy — Training Domain Model (XAP 17.3.0)
+# BillBuddy — Training Domain Model (XAP 18.0.1)
 
 This is the canonical domain used throughout GigaSpaces training labs. Use these classes as reference when explaining XAP patterns.
 
@@ -309,10 +309,10 @@ Long count = future.get(5, TimeUnit.SECONDS); // always bound the wait
 
 ```xml
 <properties>
-    <gigaspaces.version>17.3.0</gigaspaces.version>
+    <gigaspaces.version>18.0.1</gigaspaces.version>
     <spring.version>7.0.8</spring.version>
-    <maven.compiler.source>17</maven.compiler.source>
-    <maven.compiler.target>17</maven.compiler.target>
+    <maven.compiler.source>25</maven.compiler.source>
+    <maven.compiler.target>25</maven.compiler.target>
 </properties>
 
 <repositories>

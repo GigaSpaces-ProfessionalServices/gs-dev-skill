@@ -1,4 +1,4 @@
-# XAP Space Operations (XAP 17.3.0)
+# XAP Space Operations (XAP 18.0.1)
 
 ## Connecting to the Space
 

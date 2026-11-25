@@ -1,18 +1,18 @@
 ---
 name: gigaspaces-xap
 description: >
-  Expert GigaSpaces XAP 17.3.0 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, distributed tracing, Property Storage Adapter, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 17.3.0 unless the user specifies otherwise.
+  Expert GigaSpaces XAP 18.0.1 Java code generation and guidance. Use this skill for ANY task involving GigaSpaces XAP Java development — including writing Space POJOs, querying with SQLQuery or templates, event-driven processing with Polling/Notify containers, colocated task execution (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions, Change API, Processing Unit design, Spring Boot integration, Maven project setup, and OpenTelemetry distributed tracing with Zipkin. Trigger whenever the user mentions GigaSpaces, XAP, IMDG, GigaSpace API, SpaceDocument, DistributedTask, DurableTask, Processing Unit, space-based architecture, SpaceRouting, partitioning, custom aggregator, SQLQuery, ZipkinTracerBean, OpenTelemetry, OTel span, Property Storage Adapter, gRPC SpaceService, a non-Java (Python, Go, C#) client for the space, or any GigaSpaces-related code, pattern, or concept. Default XAP target version is 18.0.1 unless the user specifies otherwise.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
   version: 1.0.0
 ---
 
-# GigaSpaces XAP 17.3.0 – Java Code Generation Skill
+# GigaSpaces XAP 18.0.1 – Java Code Generation Skill
 
 GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) and Space-Based Architecture (SBA) platform for building high-throughput, low-latency distributed applications.
 
-**Default target version: XAP 17.3.0** (Maven artifact version: `17.3.0`)
+**Default target version: XAP 18.0.1** (Maven artifact version: `18.0.1`)
 
 ---
 
@@ -31,6 +31,7 @@ GigaSpaces XAP (eXtreme Application Platform) is an in-memory data grid (IMDG) a
 | `references/remoting.md` | Executor-Based Remoting, @RemotingService, @ExecutorProxy, broadcast reducers |
 | `references/processing-unit.md` | PU packaging, Spring Boot main class, pu.xml, sla.xml, embedded vs remote space, local cache/view |
 | `references/sql-jdbc.md` | JDBC driver, SQL syntax, DYNAMIC_FILTER hint, EXPLAIN ANALYZE, Spring JdbcTemplate |
+| `references/grpc-space-service.md` | gRPC SpaceService via REST v3 (18.0.1+): when to use vs native/JDBC/REST HTTP, Java/Python clients, `.proto` contract, type mapping, status codes, caveats (no query params, unbounded `maxEntries`, 4 MB limit, read-modify-write data loss) |
 | `references/billbuddy-domain.md` | Complete BillBuddy training domain with working examples of all major XAP patterns |
 | `references/not-in-aggregator.md` | NOT IN custom aggregator: why indexes can't serve NOT IN, required @SpaceIndex, Payment/status example, when/when-not to use |
 | `references/opentelemetry-tracing.md` | OpenTelemetry distributed tracing: ZipkinTracerBean, span creation, multi-thread patterns, Zipkin setup, common mistakes |
@@ -50,6 +51,7 @@ User wants to...
   ├── Expose a service via the space     → remoting.md
   ├── Configure / deploy a PU            → processing-unit.md
   ├── Query via SQL / JDBC               → sql-jdbc.md
+  ├── Access the space from non-Java / via gRPC → grpc-space-service.md
   ├── See a full working example         → billbuddy-domain.md
   ├── Query NOT IN on an indexed field   → not-in-aggregator.md
   ├── Add OpenTelemetry / tracing spans  → opentelemetry-tracing.md
@@ -75,7 +77,7 @@ skip without knowing it's missing.
 - Include only the relevant import block
 
 **Complete project** (user asks for "working example", "runnable project", "full implementation"):
-1. `pom.xml` — with XAP 17.3.0 Maven deps (read `maven-pom.md` first)
+1. `pom.xml` — with XAP 18.0.1 Maven deps (read `maven-pom.md` first)
 2. Model module: `@SpaceClass` POJOs with `@SpaceId`, `@SpaceRouting`, `@SpaceIndex`
 3. `pu.xml` or Spring Boot `@Configuration` class — prefer annotations; use `pu.xml` only where annotations are insufficient
 4. `application.yml` or `application.properties` for Spring Boot connection settings
@@ -89,7 +91,7 @@ skip without knowing it's missing.
 2. **Spring Boot where applicable** — Client applications, REST gateways, and feeder services should use `@SpringBootApplication`; colocated PU logic uses the PU Spring context.
 3. **Routing and partitioning** — Every `@SpaceClass` definition must show `@SpaceRouting` on the correct getter. If routing ≠ ID, explain why.
 4. **Default topology** — Remote/clustered space proxy. Mention embedded space when the context is a colocated Processing Unit or a unit test.
-5. **Java version** — Target Java 17 (`maven.compiler.source=17`).
+5. **Java version** — Target Java 25 (`maven.compiler.source=25`), the JDK GigaSpaces 18.0.1 requires.
 
 ---
 
@@ -114,6 +116,8 @@ Always flag these when you see them in user code or questions:
 | Mutating an entry read via an embedded/local proxy in place | Embedded proxy returns a live reference, not a copy — can throw `ConcurrentModificationException` or desync an indexed collection field | Deep-copy before mutating; make indexed embedded-collection fields immutable; see `space-operations.md` and `pojo-model.md` |
 | `DistributedTask.reduce()` returns a bare count (e.g. `Long`) | Discards per-category/per-entry detail callers usually need next | Reduce into structured data, e.g. `Map<Category, Long>`; see `task-execution.md` |
 | `<os-core:mirror>` / `space-sync-endpoint` with no `PersistencyExceptionHandler` wired in | Persistence failures propagate to the primary's logs and the primary retries the batch forever — the replication channel blocks and the redo log grows unbounded | Wrap the sync endpoint with `SpaceSynchronizationEndpointExceptionHandler` + a `PersistencyExceptionHandler`; see `mirror-persistence.md` for the default behavior, boilerplate, and its own caveats |
+| gRPC `queryExpression` built by string concatenation, or with `maxEntries` unset | No `?` parameters → SQL injection; unset `maxEntries` = unlimited → `RESOURCE_EXHAUSTED` after REST v3 loads every match | Quote every value / allow-list; always set `maxEntries`; see `grpc-space-service.md` |
+| gRPC client doing read-modify-write (`readById` then `write`) | `write` replaces the whole entry; properties gRPC can't represent (nested objects, collections, `BigDecimal`) are silently nulled | Use gRPC `change` for updates; model shared types flat; see `grpc-space-service.md` |
 | Calling `execute()`/`gigaSpace.execute(task)` directly on a `DurableTask` | Bypasses registration — no status tracking, cancellation, or failover recovery | Register with `gigaSpace.registerDurableTask(task)`, then rely on `isAutoStart()` or call `executeDurable(uuid)`; see `task-execution.md` |
 | Relying on a `@SpacePropertyStorageAdapter`-adapted property for `SQLQuery` filters on its internal structure | The stored form (e.g. compressed bytes) generally isn't queryable on its sub-fields, only via `supportsEqualsMatching`/`supportsOrderedMatching` on the whole value | Extract queryable sub-fields into separate plain, indexed properties; see `storage-adapters.md` |
 

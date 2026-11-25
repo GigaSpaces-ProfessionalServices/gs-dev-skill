@@ -1,4 +1,4 @@
-# XAP Space-Based Remoting (XAP 17.3.0)
+# XAP Space-Based Remoting (XAP 18.0.1)
 
 Space-Based Remoting exposes server-side services over the space transport layer, providing automatic load-balancing, high availability, and partition-aware routing.
 

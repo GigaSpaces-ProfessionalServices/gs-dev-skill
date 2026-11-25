@@ -5,7 +5,7 @@ description: >
   during the jump, framed as a reusable checklist rather than a single hardcoded version-pair diff.
   Use when the user mentions upgrading XAP, migrating to a new XAP version, GigaSpaces version
   compatibility, Spring/Hibernate compatibility during an XAP upgrade, or asks what might break
-  moving between XAP versions. Default XAP target version is 17.3.0 unless the user specifies
+  moving between XAP versions. Default XAP target version is 18.0.1 unless the user specifies
   otherwise.
 license: MIT
 metadata:
@@ -15,8 +15,8 @@ metadata:
 
 # GigaSpaces XAP Upgrade Skill
 
-> Anchored to two verified version jumps so far
-> (**17.2 → 17.3** and **17.1 → 17.2**). Deliberately **not** extending further back to
+> Anchored to four verified version jumps so far
+> (**18.0 → 18.0.1**, **17.3 → 18.0**, **17.2 → 17.3** and **17.1 → 17.2**). Deliberately **not** extending further back to
 > older/EOL-track versions for now — see "Version Scope" below.
 
 This skill answers the *planning* question — "what do I need to check before/while upgrading XAP
@@ -31,9 +31,10 @@ Search) — those are optional additions, not upgrade requirements, and don't be
 exception: if something reads as a **planned deprecation** of a feature or format currently in use,
 that's in scope — it's a compatibility risk on the way out, not a new capability on the way in.
 REST API V3 is exactly this case, not the "new feature" case: it was introduced in 17.2, and per
-that release's own notes the V2 manager API (and the V2-based ops-ui) is deprecated alongside it,
-slated for removal in a future version — a team still depending on V2/ops-ui has a real
-migration to plan for.
+that release's own notes the V2 manager API (and the V2-based ops-ui) is deprecated alongside it.
+**That removal happened in 18.0**: V2 and ops-ui on port 8090 are gone, and REST V3 on 9090 is the
+only manager REST API. A team still depending on V2/ops-ui must migrate before moving to 18.0 —
+see `references/17.3-to-18.0.md`.
 
 **Confirmed**: XAP does not support a rolling, GSC-by-GSC upgrade of a live cluster across versions.
 Don't suggest that as an upgrade strategy.
@@ -43,7 +44,7 @@ constraint (e.g. full cluster stop/redeploy, blue-green via a second cluster). N
 against GigaSpaces' own docs — don't assert a specific procedure here until that's confirmed,
 rather than inferring one.
 
-**Default target version: XAP 17.3.0**
+**Default target version: XAP 18.0.1**
 
 ---
 
@@ -69,8 +70,9 @@ version does — see the checklist's "pinning to align is far less friction" gui
 both XAP's version and the team's own dependency versions explicitly, rather than assuming
 either, avoids diagnosing the wrong problem.
 
-Once XAP's current/target versions are known, `references/17.1-to-17.2.md` and
-`references/17.2-to-17.3.md` cover 17.1→17.2 and 17.2→17.3; see "Version Scope" below for jumps
+Once XAP's current/target versions are known, `references/17.1-to-17.2.md`,
+`references/17.2-to-17.3.md`, `references/17.3-to-18.0.md` and `references/18.0-to-18.0.1.md`
+cover 17.1→17.2, 17.2→17.3, 17.3→18.0 and 18.0→18.0.1; see "Version Scope" below for jumps
 spanning both, and what's not covered yet.
 
 ---
@@ -87,6 +89,10 @@ plausible scenario; when that comes up, read both `references/17.1-to-17.2.md` a
 upgrade one minor version at a time. Each jump is actually verified against specific patch installs
 (noted inside each reference file):
 
+- **18.0 → 18.0.1** — done, see `references/18.0-to-18.0.1.md`.
+- **17.3 → 18.0** — done, see `references/17.3-to-18.0.md`. The two breaking changes of the 18
+  line (Java 25 only; V2 REST Manager/ops-ui on 8090 removed) are both here. A team going from
+  17.3 straight to 18.0.1 reads this file and `18.0-to-18.0.1.md` together.
 - **17.2 → 17.3** — done, see `references/17.2-to-17.3.md`.
 - **17.1 → 17.2** — done, see `references/17.1-to-17.2.md`.
 - Older/EOL-track versions (17.0 and earlier) — deliberately out of scope for now, even though a
@@ -113,6 +119,8 @@ hold the version-specific detail.
 | Reference Path | Covers |
 |------|--------|
 | `references/dependency-compatibility-checklist.md` | The version-agnostic checklist itself — Java, Spring Framework/Boot, Hibernate, client-server version alignment, and why each matters |
+| `references/18.0-to-18.0.1.md` | Confirmed version numbers for the 18.0 → 18.0.1 jump (patch-level Spring/Boot bumps, V2 web app removed from the distribution, lookup group) |
+| `references/17.3-to-18.0.md` | The 17.3 → 18.0 jump: **Java 25 required** (17/21 dropped) and what to change for it; **V2 REST Manager and ops-ui on 8090 retired** in favor of REST V3/SpaceDeck on 9090, and how to migrate; confirmed version numbers |
 | `references/17.2-to-17.3.md` | Confirmed version numbers for the 17.2 → 17.3 jump (Java, Spring Framework, Spring Security, Spring Boot, Hibernate), plus any deprecations noted for that window |
 | `references/17.1-to-17.2.md` | Confirmed version numbers for the 17.1 → 17.2 jump (same categories), plus any deprecations noted for that window |
 
@@ -139,6 +147,10 @@ Planning a XAP version upgrade...
  checklist #2/#3/#4)
 
   ├── What JDK does the target version need?                        → checklist #1
+  │     └── Moving to 18.x                                            → JDK 25 only, see 17.3-to-18.0.md
+  ├── Does anything call the V2 REST Manager / ops-ui on 8090?
+  │     └── Moving to 18.x                                            → removed; migrate to REST V3
+  │                                                                       on 9090, see 17.3-to-18.0.md
   ├── Does the app use Spring independently of GigaSpaces (direct
   │   org.springframework.* imports, or Spring Boot)?                 → checklist #2 (its own JDK
   │                                                                       floor is checklist #1)
@@ -160,7 +172,7 @@ Planning a XAP version upgrade...
                                                                           breaks only surface at deploy
 
 (checklist items → references/dependency-compatibility-checklist.md;
- confirmed version numbers for the current anchor jump → references/17.2-to-17.3.md)
+ confirmed version numbers for each jump → references/<from>-to-<to>.md)
 ```
 
 ---
@@ -170,6 +182,8 @@ Planning a XAP version upgrade...
 | Question | See |
 |---|---|
 | The general checklist (why each category matters) | `references/dependency-compatibility-checklist.md` |
+| Confirmed version numbers for the 18.0 → 18.0.1 jump | `references/18.0-to-18.0.1.md` |
+| Java 25 and V2 REST Manager removal (17.3 → 18.0) | `references/17.3-to-18.0.md` |
 | Confirmed version numbers for the 17.2 → 17.3 jump | `references/17.2-to-17.3.md` |
 | Confirmed version numbers for the 17.1 → 17.2 jump | `references/17.1-to-17.2.md` |
 | Full Spring 7 / Hibernate 7 Mirror-service gotchas (package moves, classpath scope) | `xap-persist/references/mirror-service.md` — "Known Gotchas" + Cross-Cutting Notes #2/#3 |

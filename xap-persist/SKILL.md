@@ -9,7 +9,7 @@ description: >
   persisting/loading space data to-or-from an external database. For the mirror's exception-handling
   policy specifically (PersistencyExceptionHandler, retry/dead-letter), see gigaspaces-xap's
   mirror-persistence.md first — this skill assumes that decision is already made and covers what
-  surrounds it. Default XAP target version is 17.3.0 unless the user specifies otherwise.
+  surrounds it. Default XAP target version is 18.0.1 unless the user specifies otherwise.
 license: MIT
 metadata:
   author: GigaSpaces Technologies, Inc.
@@ -28,7 +28,7 @@ current `mongo:7` server, and it's unverified whether GigaSpaces' `xap-mongodb` 
 requires that exact driver version — held back until that's actually researched, not just
 version-bumped and assumed to work.
 
-**Default target version: XAP 17.3.0**
+**Default target version: XAP 18.0.1**
 
 ---
 
@@ -40,7 +40,7 @@ alternatives table for picking a policy. Read that file first if the question is
 a persistence write fails." This skill's `mirror-service.md` assumes that decision is already made
 and covers everything around it instead: the actual Hibernate `SessionFactory`/`dataSource` wiring,
 `mirrored="true"`, deploy/verify, and the dependency-upgrade gotchas that surfaced migrating this
-lab to XAP 17.3.0 / Spring 7 / Hibernate 7. Don't duplicate the exception-handler content here if
+lab to XAP 18.0.1 / Spring 7 / Hibernate 7. Don't duplicate the exception-handler content here if
 extending this skill later — point back to `gigaspaces-xap` instead.
 
 ---

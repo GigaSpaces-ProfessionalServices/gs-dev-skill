@@ -1,4 +1,4 @@
-# XAP Event Containers (XAP 17.3.0)
+# XAP Event Containers (XAP 18.0.1)
 
 | Container | Semantics | Use when |
 |-----------|-----------|----------|

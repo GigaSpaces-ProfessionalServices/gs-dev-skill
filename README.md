@@ -10,18 +10,19 @@ folder is independent: install only the ones you need.
 
 | Skill | Use for |
 |---|---|
-| [`gigaspaces-xap`](gigaspaces-xap/) | Java code generation and guidance for GigaSpaces XAP 17.3.0 |
+| [`gigaspaces-xap`](gigaspaces-xap/) | Java code generation and guidance for GigaSpaces XAP 18.0.1 |
 | [`iidr-cdc-operations`](iidr-cdc-operations/) | Operational runbooks for IBM InfoSphere Data Replication (IIDR) CDC engines |
 | [`xap-wan`](xap-wan/) | GigaSpaces XAP WAN Gateway: multi-site replication, bootstrapping, replication filters, conflict resolution |
 | [`xap-persist`](xap-persist/) | GigaSpaces XAP external-database persistence: full Mirror service setup, initial load, custom hand-written-JDBC persistence, redolog internals |
-| [`xap-upgrade`](xap-upgrade/) | Planning a GigaSpaces XAP version upgrade: a reusable pre-/during-upgrade checklist, Spring/Hibernate compatibility, version-pair notes (17.1→17.2, 17.2→17.3) |
-| [`environment-variables-and-manager`](xap-configurations/environment-variables-and-manager/) | GigaSpaces XAP 17.3.0 environment variables (setenv/setenv-overrides, current vs. legacy `GS_*`), system properties, and GigaSpaces Manager setup including HA and ZooKeeper |
-| [`firewall-and-static-ports`](xap-configurations/firewall-and-static-ports/) | Running GigaSpaces XAP 17.3.0 across a firewall or NAT: static ports, which ports to open, LRMI network mapping |
-| [`remote-proxy-connectivity`](xap-configurations/remote-proxy-connectivity/) | Troubleshooting GigaSpaces XAP 17.3.0 remote SpaceProxy connectivity: locators/groups, `CannotFindSpaceException`, deployed-PU vs. standalone client behavior |
+| [`xap-upgrade`](xap-upgrade/) | Planning a GigaSpaces XAP version upgrade: a reusable pre-/during-upgrade checklist, Spring/Hibernate compatibility, version-pair notes (17.1→17.2, 17.2→17.3, 17.3→18.0, 18.0→18.0.1) |
+| [`xap-offheap-blobstore`](xap-offheap-blobstore/) | GigaSpaces 18.0.1+ off-heap blobstore: deploying it, reading values in place for queries/aggregators/iterators, custom aggregators that declare their paths, the iterator-projection read-modify-write pitfall |
+| [`environment-variables-and-manager`](xap-configurations/environment-variables-and-manager/) | GigaSpaces XAP 18.0.1 environment variables (setenv/setenv-overrides, current vs. legacy `GS_*`), system properties, and GigaSpaces Manager setup including HA and ZooKeeper |
+| [`firewall-and-static-ports`](xap-configurations/firewall-and-static-ports/) | Running GigaSpaces XAP 18.0.1 across a firewall or NAT: static ports, which ports to open, LRMI network mapping |
+| [`remote-proxy-connectivity`](xap-configurations/remote-proxy-connectivity/) | Troubleshooting GigaSpaces XAP 18.0.1 remote SpaceProxy connectivity: locators/groups, `CannotFindSpaceException`, deployed-PU vs. standalone client behavior |
 
 ### gigaspaces-xap
 
-Expert guidance for GigaSpaces XAP 17.3.0 Java development: Space POJOs, querying with SQLQuery,
+Expert guidance for GigaSpaces XAP 18.0.1 Java development: Space POJOs, querying with SQLQuery,
 event-driven processing (Polling/Notify containers), colocated task execution
 (Task/DistributedTask/DurableTask), space-based remoting, custom aggregators, transactions,
 Processing Unit design, Spring Boot integration, Maven setup, and OpenTelemetry distributed tracing.
@@ -72,13 +73,33 @@ dependency-compatibility categories (including Spring/Hibernate), config formats
 stop working, breaking changes, and planned deprecations. Adopting new features a target version
 introduces is out of scope. See [`xap-upgrade/SKILL.md`](xap-upgrade/SKILL.md) for full details.
 
-The specific version numbers cited are confirmed only for the two jumps covered so far,
-17.1 → 17.2 and 17.2 → 17.3 (one reference file each); the checklist categories are meant to
-generalize to other jumps.
+The specific version numbers cited are confirmed only for the four jumps covered so far,
+17.1 → 17.2, 17.2 → 17.3, 17.3 → 18.0 and 18.0 → 18.0.1 (one reference file each); the checklist categories are meant to generalize to other jumps.
+
+### xap-offheap-blobstore
+
+Guidance for the off-heap blobstore and the 18.0.1 change that lets the space read values directly
+from off-heap blocks instead of building full entries. It covers:
+
+- deploying an off-heap space, and the internal-cache setting that decides whether reads hit the block
+- which queries and built-in aggregators benefit
+- writing custom aggregators that opt in via `getAggregatedPaths()`
+- the space-iterator projection change, which can silently erase data in read-modify-write loops
+  (on any space type, not just off-heap)
+- where the optimization doesn't apply
+
+The off-heap blobstore in-place read optimization is a GigaSpaces 18.0.1 feature. See
+[`xap-offheap-blobstore/SKILL.md`](xap-offheap-blobstore/SKILL.md) for full details.
+
+Distilled from `gs-core-dev-training`'s `lab22-offheap_blobstore-example`. Everything in
+the skill was reproduced by building that lab against **18.0.1** (GA) and running all six of its
+examples on a local 18.0.1 grid. Separate checks confirmed the `getRawEntry()` variant of the
+aggregator exception and that the iterator projection change also affects on-heap spaces. **To
+re-verify after a release**, rebuild and rerun the lab against it and check for drift.
 
 ### environment-variables-and-manager
 
-Guidance for configuring GigaSpaces XAP 17.3.0 environment variables and the GigaSpaces Manager:
+Guidance for configuring GigaSpaces XAP 18.0.1 environment variables and the GigaSpaces Manager:
 the `setenv`/`setenv-overrides` mechanism, current vs. legacy `GS_*` variables, a narrow set of
 `-D` system properties, and Manager setup from a local single-instance dev setup through a
 production 3-Manager HA cluster (ports, embedded ZooKeeper configuration, ZooKeeper TLS). See
@@ -90,7 +111,7 @@ cluster on Docker; unmarked claims are documented behavior not independently ver
 
 ### firewall-and-static-ports
 
-Guidance for making a GigaSpaces XAP 17.3.0 cluster reachable across a firewall or NAT boundary:
+Guidance for making a GigaSpaces XAP 18.0.1 cluster reachable across a firewall or NAT boundary:
 disabling multicast, statically pinning every listener port, which ports actually need to cross
 the boundary, and LRMI network mapping for NAT. The port guidance is scoped to one goal: an
 external client discovering and reading/writing an already-deployed space. See
@@ -102,7 +123,7 @@ GSC) XAP 17.3.0 cluster on Docker with an `iptables` rule enforcing the port bou
 
 ### remote-proxy-connectivity
 
-Troubleshooting guidance for a client that can't get a working `SpaceProxy` to a remote XAP 17.3.0
+Troubleshooting guidance for a client that can't get a working `SpaceProxy` to a remote XAP 18.0.1
 space: a triage list to work through first, locators/groups discovery (`GS_LOOKUP_LOCATORS`,
 `GS_LOOKUP_GROUPS` and their `-D` equivalents), reading `CannotFindSpaceException` /
 `FinderException`, the 17.3.0 smart-externalizable pitfall, and how a proxy created inside a
